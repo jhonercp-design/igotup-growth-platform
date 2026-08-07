@@ -104,41 +104,37 @@
     const data = window.iGotUpData;
     const modo = dataMode; // 'supabase' ou 'demo'
 
+    // --- Camada Supabase: tenta criar/login e indicador, mas NUNCA bloqueia navegação ---
     if (modo === 'supabase' && S && S.client) {
       toast('Criando conta…');
+      let userId = null;
       try {
-        // 1) tenta criar usuário no auth; se já existe, faz login
         const { data: su, error } = await S.signUp(email, senha, {
           full_name: name, loja: lojaId, whats, cpf, layer,
         });
-        if (error) {
-          // se o usuário já existe, tenta login
-          if (/already|existente|registered|usuario/i.test(error.message || '')) {
-            const { error: le } = await S.signIn(email, senha);
-            if (le) { toast('Não foi possível entrar. Verifique email/senha.'); return; }
-          } else {
-            toast('Erro ao criar conta: ' + error.message); return;
-          }
+        if (error && /already|existente|registered|usuario|user/i.test(error.message || '')) {
+          // usuário já existe → tenta login
+          await S.signIn(email, senha);
+        } else if (error) {
+          console.warn('signUp warning (não bloqueia):', error.message);
         }
-        // 2) obtém o usuário da sessão
         const sess = await S.getSession();
-        const userId = sess ? sess.user.id : (su && su.user ? su.user.id : null);
+        userId = (sess && sess.user) ? sess.user.id : (su && su.user ? su.user.id : null);
         if (userId) {
-          // verifica se já tem indicador; se não, cria
-          const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
-          const whatsNorm = whats.replace(/\D/g,'');
-          const existente = await data.getIndicador(userId);
+          const existente = await data.getIndicador(userId).catch(()=>null);
           if (!existente) {
+            const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
+            const whatsNorm = whats.replace(/\D/g,'');
             await data.criarIndicador({
               user_id: userId, nome: name, whatsapp_norm: whatsNorm,
               loja_id: lojaId, cpf, codigo, aceite_lgpd_em: new Date().toISOString(),
-            });
+            }).catch(e=>console.warn('indicador não criado (opcional):', e.message));
           }
         }
-      } catch(e) { console.error(e); toast('Erro ao salvar: ' + e.message); return; }
+      } catch(e) { console.warn('Supabase opcional falhou, entrando mesmo assim:', e.message); }
     }
 
-    // ---- cria sessão e navega ----
+    // ---- cria sessão e navega (SEMPRE) ----
     session = { name, email, layer, lojaId, whats, cpf };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
