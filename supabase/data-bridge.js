@@ -1,35 +1,31 @@
 /* ============================================================
    iGotUp · Data Bridge — camada unificada de persistência
-   - Se o Supabase estiver configurado E as tabelas existirem → usa Supabase
-   - Caso contrário → fallback para localStorage (modo demo)
+   CAMINHO A: integrado ao modelo existente
+   - Supabase disponível + tabelas reais → usa Supabase
+   - Caso contrário → fallback demo (localStorage)
+   Tabelas reais: lojas · indicadores · indicacoes · lancamentos · eventos
    ============================================================ */
 (function (global) {
   'use strict';
 
   const LS = {
-    profiles: 'ig_ue_profiles',
-    referrals: 'ig_ue_referrals',
-    wallets: 'ig_ue_wallets',
-    movements: 'ig_ue_movements',
-    campanhas: 'ig_ue_campanhas',
+    lojas: 'ig_demo_lojas',
+    indicadores: 'ig_demo_indicadores',
+    indicacoes: 'ig_demo_indicacoes',
+    lancamentos: 'ig_demo_lancamentos',
   };
 
   function lsGet(k) { try { return JSON.parse(localStorage.getItem(LS[k])) || []; } catch(e) { return []; } }
   function lsSet(k, v) { localStorage.setItem(LS[k], JSON.stringify(v)); }
   function uid() { return (global.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id' + Math.random().toString(36).slice(2,10); }
 
-  // estado de disponibilidade do Supabase
-  let supabaseReady = false;
   let supabaseClient = null;
-
   global.iGotUpData = {
     mode: 'demo', // 'demo' | 'supabase'
 
-    // inicializa; retorna o modo ativo
     init(cfg) {
       if (cfg && cfg.url && cfg.anonKey && global.supabase && global.iGotUpSupabase) {
-        const ok = global.iGotUpSupabase.init(cfg);
-        if (ok) {
+        if (global.iGotUpSupabase.init(cfg)) {
           this.client = global.iGotUpSupabase.client;
           this.mode = 'supabase';
           return this.mode;
@@ -39,97 +35,109 @@
       return this.mode;
     },
 
-    // ---------- PERFIS ----------
-    async getProfile(userId) {
+    // ---------- LOJAS (26 unidades reais) ----------
+    async getLojas() {
       if (this.mode === 'supabase') {
-        const { data } = await this.client.from('profiles').select('*').eq('id', userId).maybeSingle();
-        return data;
-      }
-      return lsGet('profiles').find(p => p.id === userId) || null;
-    },
-
-    async saveProfile(profile) {
-      if (this.mode === 'supabase') {
-        const { data } = await this.client.from('profiles').upsert(profile).select().single();
-        return data;
-      }
-      const all = lsGet('profiles');
-      const i = all.findIndex(p => p.id === profile.id);
-      if (i >= 0) all[i] = profile; else all.push(profile);
-      lsSet('profiles', all);
-      return profile;
-    },
-
-    // ---------- INDICAÇÕES ----------
-    async getReferrals(userId) {
-      if (this.mode === 'supabase') {
-        const { data } = await this.client.from('referrals').select('*').eq('indicador_id', userId).order('created_at', { ascending: false });
+        const { data } = await this.client.from('lojas').select('id,nome,cidade,estado').eq('ativa', true).order('nome');
         return data || [];
       }
-      return lsGet('referrals').filter(r => r.indicador_id === userId).sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''));
+      return lsGet('lojas');
     },
 
-    async createReferral(ref) {
-      const rec = { id: uid(), status: 'pendente', recompensa: 0, created_at: new Date().toISOString(), ...ref };
+    // ---------- INDICADOR (perfil de quem indica) ----------
+    // Cria um indicador vinculado ao usuário autenticado
+    async criarIndicador(perfil) {
+      const rec = { id: uid(), criado_em: new Date().toISOString(), ...perfil };
       if (this.mode === 'supabase') {
-        const { data } = await this.client.from('referrals').insert(rec).select().single();
+        const { data } = await this.client.from('indicadores').insert(rec).select().single();
         return data || rec;
       }
-      const all = lsGet('referrals'); all.push(rec); lsSet('referrals', all);
+      const all = lsGet('indicadores'); all.push(rec); lsSet('indicadores', all);
       return rec;
     },
 
-    async updateReferral(id, patch) {
+    async getIndicador(userId) {
       if (this.mode === 'supabase') {
-        await this.client.from('referrals').update(patch).eq('id', id);
-        return;
-      }
-      const all = lsGet('referrals');
-      const r = all.find(x => x.id === id);
-      if (r) Object.assign(r, patch);
-      lsSet('referrals', all);
-    },
-
-    // ---------- WALLET ----------
-    async getWallet(userId) {
-      if (this.mode === 'supabase') {
-        const { data } = await this.client.from('wallets').select('*').eq('user_id', userId).maybeSingle();
+        const { data } = await this.client.from('indicadores').select('*').eq('user_id', userId).maybeSingle();
         return data;
       }
-      return lsGet('wallets').find(w => w.user_id === userId) || { user_id: userId, saldo: 0 };
+      return lsGet('indicadores').find(i => i.user_id === userId) || null;
     },
 
-    async creditWallet(userId, valor, descricao) {
+    async getIndicadorByCodigo(codigo) {
       if (this.mode === 'supabase') {
-        await global.iGotUpSupabase.creditWallet(userId, valor, descricao);
-        return;
+        const { data } = await this.client.from('indicadores').select('*').eq('codigo', codigo).maybeSingle();
+        return data;
       }
-      const w = await this.getWallet(userId);
-      const saldo = (w.saldo || 0) + valor;
-      const all = lsGet('wallets');
-      const i = all.findIndex(x => x.user_id === userId);
-      if (i >= 0) all[i].saldo = saldo; else all.push({ user_id: userId, saldo });
-      lsSet('wallets', all);
-      const mv = lsGet('movements'); mv.push({ id: uid(), user_id: userId, tipo: 'crédito', descricao, valor, created_at: new Date().toISOString() });
-      lsSet('movements', mv);
+      return lsGet('indicadores').find(i => i.codigo === codigo) || null;
     },
 
-    // ---------- CAMPANHAS (MGH) ----------
-    async createCampanha(camp) {
-      const rec = { id: uid(), created_at: new Date().toISOString(), ...camp };
+    // ---------- INDICAÇÕES (funil real) ----------
+    // status enum: nova | em_contato | test_ride | comprou | comissao_paga | nao_converteu | expirada | rejeitada
+    async getIndicacoes(indicadorId) {
       if (this.mode === 'supabase') {
-        await this.client.from('campanhas_criadas').insert(rec);
-        return;
-      }
-      const all = lsGet('campanhas'); all.unshift(rec); lsSet('campanhas', all);
-    },
-
-    async getCampanhas() {
-      if (this.mode === 'supabase') {
-        const { data } = await this.client.from('campanhas_criadas').select('*').order('created_at', { ascending: false });
+        const { data } = await this.client.from('indicacoes').select('*').eq('indicador_id', indicadorId).order('criado_em', { ascending: false });
         return data || [];
       }
-      return lsGet('campanhas');
+      return lsGet('indicacoes').filter(i => i.indicador_id === indicadorId);
+    },
+
+    async criarIndicacao(indicacao) {
+      const rec = { id: uid(), status: 'nova', criado_em: new Date().toISOString(), ...indicacao };
+      if (this.mode === 'supabase') {
+        const { data } = await this.client.from('indicacoes').insert(rec).select().single();
+        // registra evento de status inicial
+        await this.registrarEvento(rec.id, null, 'nova');
+        return data || rec;
+      }
+      const all = lsGet('indicacoes'); all.push(rec); lsSet('indicacoes', all);
+      return rec;
+    },
+
+    async atualizarStatus(indicacaoId, novoStatus, por) {
+      if (this.mode === 'supabase') {
+        const { data: atual } = await this.client.from('indicacoes').select('status').eq('id', indicacaoId).maybeSingle();
+        const deStatus = atual ? atual.status : null;
+        await this.client.from('indicacoes').update({ status: novoStatus }).eq('id', indicacaoId);
+        await this.registrarEvento(indicacaoId, deStatus, novoStatus, por);
+        return;
+      }
+      const all = lsGet('indicacoes');
+      const r = all.find(x => x.id === indicacaoId);
+      if (r) { r.status = novoStatus; }
+      lsSet('indicacoes', all);
+    },
+
+    // ---------- EVENTOS (trilha do funil) ----------
+    async registrarEvento(indicacaoId, deStatus, paraStatus, por) {
+      if (this.mode !== 'supabase') return;
+      await this.client.from('eventos').insert({
+        indicacao_id: indicacaoId, de_status: deStatus, para_status: paraStatus, por: por || 'sistema', em: new Date().toISOString(),
+      });
+    },
+
+    // ---------- LANÇAMENTOS (comissões / carteira) ----------
+    async getLancamentos(indicadorId) {
+      if (this.mode === 'supabase') {
+        const { data } = await this.client.from('lancamentos').select('*').eq('indicador_id', indicadorId).order('criado_em', { ascending: false });
+        return data || [];
+      }
+      return lsGet('lancamentos').filter(l => l.indicador_id === indicadorId);
+    },
+
+    // saldo = soma dos lançamentos liberados/pagos
+    async getSaldo(indicadorId) {
+      const lancs = await this.getLancamentos(indicadorId);
+      return lancs.filter(l => l.status === 'pago' || l.status === 'liberado').reduce((s, l) => s + (Number(l.valor) || 0), 0);
+    },
+
+    async creditar(indicadorId, valor, tipo, descricao) {
+      const rec = { id: uid(), indicador_id: indicadorId, indicacao_id: null, tipo, valor, status: 'liberado', criado_em: new Date().toISOString(), descricao };
+      if (this.mode === 'supabase') {
+        await this.client.from('lancamentos').insert(rec);
+        return;
+      }
+      const all = lsGet('lancamentos'); all.push(rec); lsSet('lancamentos', all);
     },
   };
 })(window);
