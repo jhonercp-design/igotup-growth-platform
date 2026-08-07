@@ -20,6 +20,32 @@
   function uid() { return (global.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id' + Math.random().toString(36).slice(2,10); }
 
   let supabaseClient = null;
+
+  // lista fixa de fallback (caso o Supabase não carregue no navegador)
+  const LOJAS_FALLBACK = [
+    { id:'demo-1', nome:'Alexandro Montadora Novo Hamburgo' },
+    { id:'demo-2', nome:'Business Company LTDA' },
+    { id:'demo-3', nome:'iGotUp - Online Porto Alegre/RS' },
+    { id:'demo-4', nome:'iGotUp - Bagé/RS' },
+    { id:'demo-5', nome:'iGotUp - Barra Porto Alegre/RS' },
+    { id:'demo-6', nome:'iGotUp - Campo Bom/RS' },
+    { id:'demo-7', nome:'iGotUp - Canoas/RS Loja' },
+    { id:'demo-8', nome:'iGotUp - Canoas/RS Quiosque' },
+    { id:'demo-9', nome:'iGotUp - Estância Velha/RS' },
+    { id:'demo-10', nome:'iGotUp - Gravataí/RS' },
+    { id:'demo-11', nome:'iGotUp - iGuatemi Porto Alegre/RS' },
+    { id:'demo-12', nome:'iGotUp - Jequié/BA' },
+    { id:'demo-13', nome:'iGotUp - Parobé/RS' },
+    { id:'demo-14', nome:'iGotUp - São Leopoldo' },
+    { id:'demo-15', nome:'iGotUp Cachoeirinha' },
+    { id:'demo-16', nome:'iGotUp Capão' },
+    { id:'demo-17', nome:'iGotUp Central - Doca 5 Santa Catarina' },
+    { id:'demo-18', nome:'iGotUp Central - Sede Rio Grande' },
+    { id:'demo-19', nome:'iGotUp Penha/SC' },
+    { id:'demo-20', nome:'iGotUp RS - Portão' },
+    { id:'demo-21', nome:'iGotUp Santa Cruz Do Sul' },
+  ];
+
   global.iGotUpData = {
     mode: 'demo', // 'demo' | 'supabase'
 
@@ -36,31 +62,6 @@
     },
 
     // ---------- LOJAS (26 unidades reais) ----------
-    // lista fixa de fallback (caso o Supabase não carregue no navegador)
-    const LOJAS_FALLBACK = [
-      { id:'demo-1', nome:'Alexandro Montadora Novo Hamburgo' },
-      { id:'demo-2', nome:'Business Company LTDA' },
-      { id:'demo-3', nome:'iGotUp - Online Porto Alegre/RS' },
-      { id:'demo-4', nome:'iGotUp - Bagé/RS' },
-      { id:'demo-5', nome:'iGotUp - Barra Porto Alegre/RS' },
-      { id:'demo-6', nome:'iGotUp - Campo Bom/RS' },
-      { id:'demo-7', nome:'iGotUp - Canoas/RS Loja' },
-      { id:'demo-8', nome:'iGotUp - Canoas/RS Quiosque' },
-      { id:'demo-9', nome:'iGotUp - Estância Velha/RS' },
-      { id:'demo-10', nome:'iGotUp - Gravataí/RS' },
-      { id:'demo-11', nome:'iGotUp - iGuatemi Porto Alegre/RS' },
-      { id:'demo-12', nome:'iGotUp - Jequié/BA' },
-      { id:'demo-13', nome:'iGotUp - Parobé/RS' },
-      { id:'demo-14', nome:'iGotUp - São Leopoldo' },
-      { id:'demo-15', nome:'iGotUp Cachoeirinha' },
-      { id:'demo-16', nome:'iGotUp Capão' },
-      { id:'demo-17', nome:'iGotUp Central - Doca 5 Santa Catarina' },
-      { id:'demo-18', nome:'iGotUp Central - Sede Rio Grande' },
-      { id:'demo-19', nome:'iGotUp Penha/SC' },
-      { id:'demo-20', nome:'iGotUp RS - Portão' },
-      { id:'demo-21', nome:'iGotUp Santa Cruz Do Sul' },
-    ];
-
     async getLojas() {
       try {
         if (this.mode === 'supabase') {
