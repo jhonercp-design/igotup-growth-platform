@@ -104,37 +104,7 @@
     const data = window.iGotUpData;
     const modo = dataMode; // 'supabase' ou 'demo'
 
-    // --- Camada Supabase: tenta criar/login e indicador, mas NUNCA bloqueia navegação ---
-    if (modo === 'supabase' && S && S.client) {
-      toast('Criando conta…');
-      let userId = null;
-      try {
-        const { data: su, error } = await S.signUp(email, senha, {
-          full_name: name, loja: lojaId, whats, cpf, layer,
-        });
-        if (error && /already|existente|registered|usuario|user/i.test(error.message || '')) {
-          // usuário já existe → tenta login
-          await S.signIn(email, senha);
-        } else if (error) {
-          console.warn('signUp warning (não bloqueia):', error.message);
-        }
-        const sess = await S.getSession();
-        userId = (sess && sess.user) ? sess.user.id : (su && su.user ? su.user.id : null);
-        if (userId) {
-          const existente = await data.getIndicador(userId).catch(()=>null);
-          if (!existente) {
-            const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
-            const whatsNorm = whats.replace(/\D/g,'');
-            await data.criarIndicador({
-              user_id: userId, nome: name, whatsapp_norm: whatsNorm,
-              loja_id: lojaId, cpf, codigo, aceite_lgpd_em: new Date().toISOString(),
-            }).catch(e=>console.warn('indicador não criado (opcional):', e.message));
-          }
-        }
-      } catch(e) { console.warn('Supabase opcional falhou, entrando mesmo assim:', e.message); }
-    }
-
-    // ---- cria sessão e navega (SEMPRE) ----
+    // ---- cria sessão e NAVEGA IMEDIATAMENTE (sem esperar Supabase) ----
     session = { name, email, layer, lojaId, whats, cpf };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
@@ -146,6 +116,33 @@
     showMode();
     loadHub();
     toast(isAdm ? 'Bem-vindo, Administrador! 👑' : 'Conta criada como Cliente. Bem-vindo!');
+
+    // ---- Supabase em SEGUNDO PLANO (não bloqueia a navegação) ----
+    if (modo === 'supabase' && S && S.client) {
+      (async () => {
+        try {
+          const { error } = await S.signUp(email, senha, {
+            full_name: name, loja: lojaId, whats, cpf, layer,
+          });
+          if (error && /already|existente|registered|usuario|user/i.test(error.message || '')) {
+            await S.signIn(email, senha);
+          }
+          const sess = await S.getSession();
+          const userId = (sess && sess.user) ? sess.user.id : null;
+          if (userId) {
+            const existente = await data.getIndicador(userId).catch(()=>null);
+            if (!existente) {
+              const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
+              const whatsNorm = whats.replace(/\D/g,'');
+              await data.criarIndicador({
+                user_id: userId, nome: name, whatsapp_norm: whatsNorm,
+                loja_id: lojaId, cpf, codigo, aceite_lgpd_em: new Date().toISOString(),
+              }).catch(e=>console.warn('indicador não criado:', e.message));
+            }
+          }
+        } catch(e) { console.warn('Supabase em 2º plano falhou:', e.message); }
+      })();
+    }
   }
   function logout(){ session=null; show('login'); $id('moduleFrame').hidden=true; }
 
