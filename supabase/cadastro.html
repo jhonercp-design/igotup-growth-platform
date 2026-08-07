@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro · iGotUp Growth Platform</title>
+  <style>
+    :root{--bg:#070b13;--panel:#0e1523;--panel2:#141d2f;--line:rgba(255,255,255,.1);--text:#eaf0ff;--dim:#9aa8c6;--accent:#3de29b;--accent-glow:rgba(61,226,155,.18)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(1000px 500px at 80% -10%,#12203a 0%,transparent 55%),var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:20px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:32px;width:min(480px,100%);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    h1{margin:0 0 4px;font-size:22px}
+    p.sub{color:var(--dim);margin:0 0 20px;font-size:13px}
+    label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim);margin-bottom:14px;font-weight:600}
+    input,select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;outline:none}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+    .btn{width:100%;background:linear-gradient(135deg,var(--accent),#19c97d);color:#04230f;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:4px}
+    .btn:hover{filter:brightness(1.06)}
+    .adm-badge{display:inline-block;background:var(--accent-glow);color:var(--accent);border:1px solid rgba(61,226,155,.3);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;margin-bottom:16px}
+    .msg{font-size:12px;color:var(--dim);margin-top:12px;text-align:center;min-height:18px}
+    .msg.ok{color:var(--accent)}
+    .msg.err{color:#ff5d6b}
+    .req{color:#ff5d6b}
+    .hint{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Cadastro · iGotUp</h1>
+    <p class="sub">Crie sua conta para começar a indicar e ganhar.</p>
+    <div id="admBadge" class="adm-badge" hidden>👑 Modo Administrador — você pode definir categoria</div>
+
+    <label>Loja que fez a compra <span class="req">*</span>
+      <select id="loja"><option value="">Selecione a loja</option></select>
+    </label>
+    <label>Nome completo (sem abreviação) <span class="req">*</span>
+      <input id="nome" placeholder="Ex.: Maria da Silva Santos" />
+    </label>
+    <label>Email <span class="req">*</span>
+      <input id="email" type="email" placeholder="voce@email.com" />
+    </label>
+    <label>WhatsApp <span class="req">*</span>
+      <input id="whats" placeholder="(51) 99999-9999" />
+    </label>
+    <label>CPF <span class="req">*</span>
+      <input id="cpf" placeholder="000.000.000-00" />
+    </label>
+    <label>Senha
+      <input id="senha" type="password" placeholder="Crie uma senha" />
+    </label>
+
+    <!-- Categoria: SÓ aparece para o ADM Master -->
+    <label id="categoriaWrap" hidden>Categoria / Camada
+      <select id="categoria">
+        <option value="cliente">C5 · Cliente (padrão)</option>
+        <option value="equipe_parceiro">C4 · Equipe Parceiro</option>
+        <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
+        <option value="equipe_matriz">C2 · Equipe Matriz</option>
+        <option value="matriz_admin">C1 · Administrador Matriz</option>
+      </select>
+    </label>
+
+    <button class="btn" id="btnCadastrar">Criar conta</button>
+    <div id="msg" class="msg"></div>
+    <p class="hint">Todos os campos marcados com * são obrigatórios. Cadastros comuns são criados sempre como <b>Cliente</b>.</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const S = window.iGotUpSupabase;
+    S.init(window.SUPABASE_CONFIG);
+
+    async function carregarLojas() {
+      const sel = document.getElementById('loja');
+      try {
+        const { data } = await S.client.from('lojas').select('id,nome').eq('ativa', true);
+        (data||[]).forEach(l => sel.insertAdjacentHTML('beforeend', `<option value="${l.nome}">${l.nome}</option>`));
+      } catch(e) { console.warn('sem lojas carregadas', e); }
+    }
+
+    async function checkAdm() {
+      // Se já houver sessão, verifica se é o ADM master para mostrar categoria
+      const isAdm = await S.isAdminMaster();
+      if (isAdm) {
+        document.getElementById('admBadge').hidden = false;
+        document.getElementById('categoriaWrap').hidden = false;
+      }
+    }
+
+    document.getElementById('btnCadastrar').addEventListener('click', async () => {
+      const msg = document.getElementById('msg');
+      const loja = document.getElementById('loja').value;
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const whats = document.getElementById('whats').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      // validação de obrigatórios
+      if (!loja) return msgErr(msg, 'Selecione a loja que fez a compra.');
+      if (!nome) return msgErr(msg, 'Informe o nome completo (sem abreviação).');
+      if (!email) return msgErr(msg, 'Informe o email.');
+      if (!whats) return msgErr(msg, 'Informe o WhatsApp.');
+      if (!cpf) return msgErr(msg, 'Informe o CPF.');
+      if (!senha) return msgErr(msg, 'Crie uma senha.');
+      if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf) && !/^\d{11}$/.test(cpf)) return msgErr(msg, 'CPF inválido.');
+      if (!/^\d{10,11}$/.test(whats.replace(/\D/g,''))) return msgErr(msg, 'WhatsApp inválido.');
+
+      msg.textContent = 'Criando conta…';
+      const categoria = document.getElementById('categoria').value || 'cliente';
+      const res = await S.signUp(email, senha, {
+        full_name: nome, loja, whats, cpf, layer: categoria,
+      });
+      if (res.error) return msgErr(msg, 'Erro: ' + res.error.message);
+      msg.className = 'msg ok';
+      msg.textContent = 'Conta criada! Verifique seu email para confirmar. Camada: ' + (res.layer || 'cliente').toUpperCase();
+    });
+
+    function msgErr(el, t){ el.className='msg err'; el.textContent=t; }
+
+    carregarLojas();
+    checkAdm();
+  </script>
+</body>
+</html>
