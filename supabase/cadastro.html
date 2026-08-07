@@ -68,20 +68,23 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script src="supabase-client.js"></script>
+  <script src="data-bridge.js"></script>
   <script>
     const S = window.iGotUpSupabase;
     S.init(window.SUPABASE_CONFIG);
+    const data = window.iGotUpData;
+    data.init(window.SUPABASE_CONFIG);
 
     async function carregarLojas() {
       const sel = document.getElementById('loja');
       try {
-        const { data } = await S.client.from('lojas').select('id,nome').eq('ativa', true);
-        (data||[]).forEach(l => sel.insertAdjacentHTML('beforeend', `<option value="${l.nome}">${l.nome}</option>`));
+        // usa o Data Bridge (modelo real)
+        const lojas = await data.getLojas();
+        (lojas||[]).forEach(l => sel.insertAdjacentHTML('beforeend', `<option value="${l.id}">${l.nome}</option>`));
       } catch(e) { console.warn('sem lojas carregadas', e); }
     }
 
     async function checkAdm() {
-      // Se já houver sessão, verifica se é o ADM master para mostrar categoria
       const isAdm = await S.isAdminMaster();
       if (isAdm) {
         document.getElementById('admBadge').hidden = false;
@@ -91,15 +94,14 @@
 
     document.getElementById('btnCadastrar').addEventListener('click', async () => {
       const msg = document.getElementById('msg');
-      const loja = document.getElementById('loja').value;
+      const lojaId = document.getElementById('loja').value;
       const nome = document.getElementById('nome').value.trim();
       const email = document.getElementById('email').value.trim();
       const whats = document.getElementById('whats').value.trim();
       const cpf = document.getElementById('cpf').value.trim();
       const senha = document.getElementById('senha').value;
 
-      // validação de obrigatórios
-      if (!loja) return msgErr(msg, 'Selecione a loja que fez a compra.');
+      if (!lojaId) return msgErr(msg, 'Selecione a loja que fez a compra.');
       if (!nome) return msgErr(msg, 'Informe o nome completo (sem abreviação).');
       if (!email) return msgErr(msg, 'Informe o email.');
       if (!whats) return msgErr(msg, 'Informe o WhatsApp.');
@@ -110,12 +112,24 @@
 
       msg.textContent = 'Criando conta…';
       const categoria = document.getElementById('categoria').value || 'cliente';
-      const res = await S.signUp(email, senha, {
-        full_name: nome, loja, whats, cpf, layer: categoria,
-      });
+
+      // 1) cria o usuário (auth) via supabase-client
+      const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
+      const res = await S.signUp(email, senha, { full_name: nome, loja: '', whats, cpf, layer: categoria });
       if (res.error) return msgErr(msg, 'Erro: ' + res.error.message);
+
+      // 2) cria o indicador no modelo real (indicadores)
+      if (res.data && res.data.user) {
+        const whatsNorm = whats.replace(/\D/g, '');
+        await data.criarIndicador({
+          user_id: res.data.user.id,
+          nome, whatsapp_norm: whatsNorm, loja_id: lojaId, cpf,
+          codigo, aceite_lgpd_em: new Date().toISOString(),
+        });
+      }
+
       msg.className = 'msg ok';
-      msg.textContent = 'Conta criada! Verifique seu email para confirmar. Camada: ' + (res.layer || 'cliente').toUpperCase();
+      msg.textContent = 'Conta criada! Verifique seu email para confirmar. Código de indicação: ' + codigo;
     });
 
     function msgErr(el, t){ el.className='msg err'; el.textContent=t; }
