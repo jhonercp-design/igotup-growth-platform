@@ -195,13 +195,37 @@
     $$('.hub-card').forEach(c=>c.addEventListener('click', ()=>loadModule(c.dataset.open)));
   }
 
-  // eventos
-  $id('ssoBtn').addEventListener('click', login);
-  $id('btnLogout').addEventListener('click', logout);
-  $id('btnMenu').addEventListener('click', ()=>{ $id('appSide').classList.toggle('collapsed'); $id('appSide').classList.toggle('open'); });
-  $id('ssoEmail').addEventListener('input', verificarAdm);
-  ['ssoName','ssoEmail','ssoWhats','ssoCpf','ssoSenha','ssoLoja'].forEach(id=>$id(id).addEventListener('keydown',e=>{ if(e.key==='Enter') login(); }));
-  initData();
-  carregarLojas();
-  show('login');
+  // eventos — registrados de forma robusta
+  function registrarEventos() {
+    try {
+      $id('ssoBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          await login();
+        } catch (err) {
+          console.error('[login] erro capturado:', err);
+          toast('Ocorreu um erro: ' + err.message + '. Tente novamente.');
+        }
+      });
+      $id('btnLogout').addEventListener('click', logout);
+      $id('btnMenu').addEventListener('click', ()=>{ $id('appSide').classList.toggle('collapsed'); $id('appSide').classList.toggle('open'); });
+      $id('ssoEmail').addEventListener('input', verificarAdm);
+      ['ssoName','ssoEmail','ssoWhats','ssoCpf','ssoSenha','ssoLoja'].forEach(id=>{
+        const el = $id(id);
+        if (el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); login(); } });
+      });
+    } catch(e) {
+      console.error('[eventos] erro ao registrar:', e);
+    }
+  }
+
+  // inicialização com proteção total
+  try {
+    initData();
+    carregarLojas().catch(e=>console.warn('carregar lojas falhou (não bloqueia):', e.message));
+    registrarEventos();
+    show('login');
+  } catch(e) {
+    console.error('[init] erro:', e);
+  }
 })();
