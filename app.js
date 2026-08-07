@@ -24,8 +24,9 @@
   ];
 
   let session = null;
+  const ADM_EMAIL = 'jhonercp@gmail.com';
 
-  function toast(m){ const t=$id('toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2500); }
+  function toast(m){ const t=$id('toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,3000); }
 
   // ---------- Inicialização do Supabase / modo de dados ----------
   let dataMode = 'demo';
@@ -52,10 +53,54 @@
 
   function show(view){ $id('view-login').hidden = view!=='login'; $id('view-app').hidden = view!=='app'; }
 
-  function login(){
-    const name=$id('ssoName').value.trim(), email=$id('ssoEmail').value.trim(), layer=$id('ssoLayer').value;
-    if(!name||!email){ toast('Preencha nome e email'); return; }
-    session = { name, email, layer };
+  // Carrega as lojas reais do Supabase no campo "Loja que fez a compra"
+  async function carregarLojas(){
+    try {
+      const data = window.iGotUpData;
+      const lojas = await data.getLojas();
+      const sel = $id('ssoLoja');
+      if (lojas && lojas.length) {
+        sel.innerHTML = '<option value="">Selecione a loja</option>';
+        lojas.forEach(l => sel.insertAdjacentHTML('beforeend', `<option value="${l.id}">${l.nome}</option>`));
+      }
+    } catch(e) { console.warn('sem lojas', e); }
+  }
+
+  // Regra ADM: mostra a categoria SOMENTE se o email for o ADM Master
+  function verificarAdm(){
+    const email = $id('ssoEmail').value.trim().toLowerCase();
+    const isAdm = email === ADM_EMAIL;
+    $id('admBadge').hidden = !isAdm;
+    $id('ssoCategoriaWrap').hidden = !isAdm;
+  }
+
+  // Cadastro completo com validação dos campos obrigatórios
+  async function login(){
+    const lojaId = $id('ssoLoja').value;
+    const name = $id('ssoName').value.trim();
+    const email = $id('ssoEmail').value.trim();
+    const whats = $id('ssoWhats').value.trim();
+    const cpf = $id('ssoCpf').value.trim();
+    const senha = $id('ssoSenha').value;
+
+    // ---- validação de obrigatórios ----
+    if(!lojaId){ toast('Selecione a loja que fez a compra'); return; }
+    if(!name){ toast('Informe o nome completo (sem abreviação)'); return; }
+    if(name.split(' ').length < 2){ toast('Informe o nome completo (nome e sobrenome)'); return; }
+    if(!email){ toast('Informe o email'); return; }
+    if(!whats){ toast('Informe o WhatsApp'); return; }
+    if(!cpf){ toast('Informe o CPF'); return; }
+    if(!senha){ toast('Crie uma senha'); return; }
+    if(!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf) && !/^\d{11}$/.test(cpf)){ toast('CPF inválido'); return; }
+    const tel = whats.replace(/\D/g,'');
+    if(tel.length < 10 || tel.length > 11){ toast('WhatsApp inválido'); return; }
+
+    // ---- camada: só ADM pode definir; senão, sempre cliente ----
+    const isAdm = email.toLowerCase() === ADM_EMAIL;
+    const layer = isAdm ? ($id('ssoCategoria').value || 'cliente') : 'cliente';
+
+    // ---- cria sessão local ----
+    session = { name, email, layer, lojaId, whats, cpf };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
     $id('ahRole').textContent = L.nome;
@@ -65,7 +110,7 @@
     show('app');
     showMode();
     loadHub();
-    toast('Bem-vindo, '+name.split(' ')[0]+'! Sessão única iniciada.');
+    toast(isAdm ? 'Bem-vindo, Administrador! 👑' : 'Conta criada como Cliente. Bem-vindo!');
   }
   function logout(){ session=null; show('login'); $id('moduleFrame').hidden=true; }
 
@@ -122,8 +167,9 @@
   $id('ssoBtn').addEventListener('click', login);
   $id('btnLogout').addEventListener('click', logout);
   $id('btnMenu').addEventListener('click', ()=>{ $id('appSide').classList.toggle('collapsed'); $id('appSide').classList.toggle('open'); });
-  ['ssoName','ssoEmail'].forEach(id=>$id(id).addEventListener('keydown',e=>{ if(e.key==='Enter') login(); }));
-  $id('ssoLayer').addEventListener('change', ()=>{});
+  $id('ssoEmail').addEventListener('input', verificarAdm);
+  ['ssoName','ssoEmail','ssoWhats','ssoCpf','ssoSenha','ssoLoja'].forEach(id=>$id(id).addEventListener('keydown',e=>{ if(e.key==='Enter') login(); }));
   initData();
+  carregarLojas();
   show('login');
 })();

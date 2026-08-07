@@ -22,20 +22,41 @@
         <div class="sso-meta"><span class="dot ok"></span> <span id="ssoStatus">Verificando conexão…</span></div>
       </div>
       <div class="sso-form">
-        <h2>Entrar</h2>
-        <label>Nome <input type="text" id="ssoName" placeholder="Seu nome" /></label>
-        <label>Email <input type="email" id="ssoEmail" placeholder="voce@igotup.com.br" /></label>
-        <label>Camada de acesso
-          <select id="ssoLayer">
-            <option value="matriz_admin">C1 · Administrador Matriz</option>
-            <option value="equipe_matriz">C2 · Equipe Matriz</option>
-            <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
+        <h2>Cadastro</h2>
+        <div id="admBadge" class="adm-badge" hidden>👑 Modo Administrador — você pode definir categoria</div>
+
+        <label>Loja que fez a compra <span class="req">*</span>
+          <select id="ssoLoja"><option value="">Selecione a loja</option></select>
+        </label>
+        <label>Nome completo (sem abreviação) <span class="req">*</span>
+          <input type="text" id="ssoName" placeholder="Ex.: Maria da Silva Santos" />
+        </label>
+        <label>Email <span class="req">*</span>
+          <input type="email" id="ssoEmail" placeholder="voce@email.com" />
+        </label>
+        <label>WhatsApp <span class="req">*</span>
+          <input type="text" id="ssoWhats" placeholder="(51) 99999-9999" />
+        </label>
+        <label>CPF <span class="req">*</span>
+          <input type="text" id="ssoCpf" placeholder="000.000.000-00" />
+        </label>
+        <label>Senha
+          <input type="password" id="ssoSenha" placeholder="Crie uma senha" />
+        </label>
+
+        <!-- Categoria: SÓ aparece para o ADM Master -->
+        <label id="ssoCategoriaWrap" hidden>Categoria / Camada
+          <select id="ssoCategoria">
+            <option value="cliente">C5 · Cliente (padrão)</option>
             <option value="equipe_parceiro">C4 · Equipe Parceiro</option>
-            <option value="cliente">C5 · Cliente Indicador</option>
+            <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
+            <option value="equipe_matriz">C2 · Equipe Matriz</option>
+            <option value="matriz_admin">C1 · Administrador Matriz</option>
           </select>
         </label>
-        <button class="btn-primary" id="ssoBtn">Acessar plataforma</button>
-        <p class="hint">Single Sign-On unificado · os módulos herdam sua camada de acesso.</p>
+
+        <button class="btn-primary" id="ssoBtn">Criar conta</button>
+        <p class="hint">Todos os campos marcados com * são obrigatórios. Cadastros comuns são criados sempre como <b>Cliente</b>.</p>
       </div>
     </div>
   </section>
