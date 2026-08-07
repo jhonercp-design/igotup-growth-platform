@@ -38,7 +38,8 @@
     // ---------- LOJAS (26 unidades reais) ----------
     async getLojas() {
       if (this.mode === 'supabase') {
-        const { data } = await this.client.from('lojas').select('id,nome,cidade,estado').eq('ativa', true).order('nome');
+        // colunas reais da tabela lojas: id, nome, cidade, whatsapp, endereco, ativa
+        const { data } = await this.client.from('lojas').select('id,nome,cidade').eq('ativa', true).order('nome');
         return data || [];
       }
       return lsGet('lojas');
