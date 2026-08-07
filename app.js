@@ -1,0 +1,129 @@
+/* =========================================================
+   iGotUp Growth Platform — super-app unificado
+   Login SSO + shell + navegação entre 3 módulos (via proxy)
+   ========================================================= */
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const $id = s => document.getElementById(s);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  const LAYERS = {
+    matriz_admin: { nome:'Administrador Matriz', cam:'C1', cor:'accent' },
+    equipe_matriz: { nome:'Equipe Matriz', cam:'C2', cor:'blue' },
+    gestor_parceiro: { nome:'Gestor Parceiro', cam:'C3', cor:'gold' },
+    equipe_parceiro: { nome:'Equipe Parceiro', cam:'C4', cor:'violet' },
+    cliente: { nome:'Cliente Indicador', cam:'C5', cor:'blue' },
+  };
+
+  const MODULES = [
+    { id:'referral', ic:'🛒', nome:'Referral Engine', sub:'Crescimento', desc:'Central de indicação, carteira digital, gamificação, níveis e multi-tenant.', rota:'/referral/', tags:['Indicação','Wallet','Gamificação','Multi-tenant'] },
+    { id:'dic', ic:'🏛️', nome:'Decision Intelligence Center', sub:'Dados & IA', desc:'Command Center com 20 dashboards, mapa do Brasil, IA executiva e drill-downs.', rota:'/dic/', tags:['20 dashboards','IA','Mapa','Analytics'] },
+    { id:'mgh', ic:'🎨', nome:'Marketing Growth Hub', sub:'Conteúdo', desc:'Biblioteca de conteúdo, campanhas, IA de criação, MPS e embaixadores.', rota:'/mgh/', tags:['Conteúdo','IA','MPS','Embaixadores'] },
+  ];
+
+  let session = null;
+
+  function toast(m){ const t=$id('toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2500); }
+
+  // ---------- Inicialização do Supabase / modo de dados ----------
+  let dataMode = 'demo';
+  function initData() {
+    try {
+      dataMode = window.iGotUpData.init(window.SUPABASE_CONFIG);
+    } catch(e) { dataMode = 'demo'; }
+    const sso = $id('ssoStatus');
+    if (sso) {
+      if (dataMode === 'supabase') sso.textContent = 'Conectado ao Supabase (dados reais)';
+      else sso.textContent = 'Modo demonstração (dados demo)';
+      sso.parentElement.style.color = dataMode === 'supabase' ? 'var(--accent)' : 'var(--gold)';
+    }
+    return dataMode;
+  }
+  function showMode() {
+    const mp = $id('modePill');
+    mp.hidden = false;
+    mp.textContent = dataMode === 'supabase' ? '⚡ Supabase' : '🧪 Demo';
+    mp.style.background = dataMode === 'supabase' ? 'var(--accent-glow)' : 'var(--gold-soft)';
+    mp.style.color = dataMode === 'supabase' ? 'var(--accent)' : 'var(--gold)';
+    mp.style.padding = '4px 11px'; mp.style.borderRadius = '20px'; mp.style.fontSize = '11px'; mp.style.fontWeight = '700';
+  }
+
+  function show(view){ $id('view-login').hidden = view!=='login'; $id('view-app').hidden = view!=='app'; }
+
+  function login(){
+    const name=$id('ssoName').value.trim(), email=$id('ssoEmail').value.trim(), layer=$id('ssoLayer').value;
+    if(!name||!email){ toast('Preencha nome e email'); return; }
+    session = { name, email, layer };
+    const L = LAYERS[layer];
+    $id('ahName').textContent = name;
+    $id('ahRole').textContent = L.nome;
+    $id('ahLayer').textContent = L.cam + ' · ' + L.nome;
+    $id('ahAvatar').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    renderNav();
+    show('app');
+    showMode();
+    loadHub();
+    toast('Bem-vindo, '+name.split(' ')[0]+'! Sessão única iniciada.');
+  }
+  function logout(){ session=null; show('login'); $id('moduleFrame').hidden=true; }
+
+  function renderNav(){
+    $id('appNav').innerHTML = MODULES.map(m => `
+      <div class="app-nav-item" data-mod="${m.id}"><span class="ic">${m.ic}</span> ${m.nome}<span class="sub">${m.sub}</span></div>
+    `).join('');
+    $$('.app-nav-item').forEach(it => it.addEventListener('click', ()=>loadModule(it.dataset.mod)));
+  }
+
+  // carrega o módulo no iframe via proxy
+  function loadModule(id){
+    const m = MODULES.find(x=>x.id===id); if(!m) return;
+    $id('hubDash').hidden = true;
+    const frame = $id('moduleFrame');
+    frame.hidden = false;
+    frame.src = m.rota;
+    $id('ahCrumb').textContent = m.nome;
+    $$('.app-nav-item').forEach(i=>i.classList.toggle('active', i.dataset.mod===id));
+    toast('Abrindo ' + m.nome + '…');
+  }
+
+  // dashboard inicial do hub
+  function loadHub(){
+    $id('moduleFrame').hidden = true;
+    $id('hubDash').hidden = false;
+    $id('ahCrumb').textContent = 'Visão Geral';
+    $$('.app-nav-item').forEach(i=>i.classList.remove('active'));
+    const L = LAYERS[session.layer];
+    $id('hubDash').innerHTML = `
+      <div class="hub-hero">
+        <div><h2>Olá, ${esc(session.name.split(' ')[0])} 👋</h2>
+        <p>Acesso <b style="color:var(--accent)">${L.cam}</b> · ${L.nome} — você pode operar todos os módulos da plataforma com esta sessão única.</p></div>
+      </div>
+      <div class="hub-status">
+        <div class="hs"><span class="dot ok"></span> Referral Engine</div>
+        <div class="hs"><span class="dot ok"></span> Decision Intelligence Center</div>
+        <div class="hs"><span class="dot ok"></span> Marketing Growth Hub</div>
+      </div>
+      <div class="hub-cards">
+        ${MODULES.map(m=>`
+          <div class="hub-card" data-open="${m.id}">
+            <div class="hc-ic">${m.ic}</div>
+            <h3>${m.nome}</h3>
+            <p>${m.desc}</p>
+            <span class="hc-btn">Abrir ${m.nome}</span>
+            <div class="hc-tags">${m.tags.map(t=>`<span class="hub-tag">${t}</span>`).join('')}</div>
+          </div>`).join('')}
+      </div>`;
+    $$('.hub-card').forEach(c=>c.addEventListener('click', ()=>loadModule(c.dataset.open)));
+  }
+
+  // eventos
+  $id('ssoBtn').addEventListener('click', login);
+  $id('btnLogout').addEventListener('click', logout);
+  $id('btnMenu').addEventListener('click', ()=>{ $id('appSide').classList.toggle('collapsed'); $id('appSide').classList.toggle('open'); });
+  ['ssoName','ssoEmail'].forEach(id=>$id(id).addEventListener('keydown',e=>{ if(e.key==='Enter') login(); }));
+  $id('ssoLayer').addEventListener('change', ()=>{});
+  initData();
+  show('login');
+})();

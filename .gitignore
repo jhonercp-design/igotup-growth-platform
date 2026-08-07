@@ -1,0 +1,19 @@
+# Dependências e build
+node_modules/
+dist/
+build/
+.netlify/
+
+# Sensível — nunca versionar
+.env
+.env.local
+*.key
+service_role*
+sb_secret_*
+
+# Sistema
+.DS_Store
+*.log
+
+# A chave publishable é pública (pode ir), mas o config pode conter credenciais
+# Se quiser proteger, adicione: supabase/config.js

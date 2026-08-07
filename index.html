@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iGotUp · Growth Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== LOGIN (SSO) ===== -->
+  <section id="view-login" class="sso">
+    <div class="sso-card">
+      <div class="sso-hero">
+        <img class="sso-logo" src="logo-clear.png" alt="iGotUp" />
+        <h1>Growth Platform</h1>
+        <p>A plataforma unificada de crescimento da iGotUp.</p>
+        <ul>
+          <li>🛒 Growth Referral Engine</li>
+          <li>🏛️ Decision Intelligence Center</li>
+          <li>🎨 Marketing Growth Hub</li>
+        </ul>
+        <div class="sso-meta"><span class="dot ok"></span> <span id="ssoStatus">Verificando conexão…</span></div>
+      </div>
+      <div class="sso-form">
+        <h2>Entrar</h2>
+        <label>Nome <input type="text" id="ssoName" placeholder="Seu nome" /></label>
+        <label>Email <input type="email" id="ssoEmail" placeholder="voce@igotup.com.br" /></label>
+        <label>Camada de acesso
+          <select id="ssoLayer">
+            <option value="matriz_admin">C1 · Administrador Matriz</option>
+            <option value="equipe_matriz">C2 · Equipe Matriz</option>
+            <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
+            <option value="equipe_parceiro">C4 · Equipe Parceiro</option>
+            <option value="cliente">C5 · Cliente Indicador</option>
+          </select>
+        </label>
+        <button class="btn-primary" id="ssoBtn">Acessar plataforma</button>
+        <p class="hint">Single Sign-On unificado · os módulos herdam sua camada de acesso.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SHELL ===== -->
+  <section id="view-app" class="app" hidden>
+    <header class="app-header">
+      <div class="ah-left">
+        <button class="icon-btn" id="btnMenu">☰</button>
+        <img class="ah-logo" src="logo-clear.png" alt="iGotUp" />
+        <div class="ah-title"><strong>Growth Platform</strong><span id="ahCrumb">Visão Geral</span></div>
+      </div>
+      <div class="ah-right">
+        <span class="layer-pill" id="ahLayer"></span>
+        <span class="mode-pill" id="modePill" hidden></span>
+        <div class="ah-user"><div class="avatar" id="ahAvatar">PG</div><div class="ah-meta"><b id="ahName"></b><span id="ahRole"></span></div></div>
+        <button class="btn-ghost-sm" id="btnLogout">Sair</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="app-side" id="appSide">
+        <div class="side-label">Módulos</div>
+        <div class="app-nav" id="appNav"></div>
+        <div class="side-foot">
+          <div class="mini-status"><span class="dot ok"></span> Referral</div>
+          <div class="mini-status"><span class="dot ok"></span> DIC</div>
+          <div class="mini-status"><span class="dot ok"></span> Marketing Hub</div>
+        </div>
+      </aside>
+
+      <!-- página inicial do hub -->
+      <main class="app-main" id="appMain">
+        <div class="hub-dash" id="hubDash"></div>
+      </main>
+
+      <!-- iframe do módulo (emerge via JS) -->
+      <iframe id="moduleFrame" class="module-frame" hidden></iframe>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Supabase SDK + config + data bridge -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase/config.js"></script>
+  <script src="supabase/supabase-client.js"></script>
+  <script src="supabase/data-bridge.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
