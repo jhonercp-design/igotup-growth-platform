@@ -75,6 +75,7 @@
   }
 
   // Cadastro completo com validação dos campos obrigatórios
+  // Cadastro + login integrados ao Supabase (cria usuário e indicador)
   async function login(){
     const lojaId = $id('ssoLoja').value;
     const name = $id('ssoName').value.trim();
@@ -99,7 +100,45 @@
     const isAdm = email.toLowerCase() === ADM_EMAIL;
     const layer = isAdm ? ($id('ssoCategoria').value || 'cliente') : 'cliente';
 
-    // ---- cria sessão local ----
+    const S = window.iGotUpSupabase;
+    const data = window.iGotUpData;
+    const modo = dataMode; // 'supabase' ou 'demo'
+
+    if (modo === 'supabase' && S && S.client) {
+      toast('Criando conta…');
+      try {
+        // 1) tenta criar usuário no auth; se já existe, faz login
+        const { data: su, error } = await S.signUp(email, senha, {
+          full_name: name, loja: lojaId, whats, cpf, layer,
+        });
+        if (error) {
+          // se o usuário já existe, tenta login
+          if (/already|existente|registered|usuario/i.test(error.message || '')) {
+            const { error: le } = await S.signIn(email, senha);
+            if (le) { toast('Não foi possível entrar. Verifique email/senha.'); return; }
+          } else {
+            toast('Erro ao criar conta: ' + error.message); return;
+          }
+        }
+        // 2) obtém o usuário da sessão
+        const sess = await S.getSession();
+        const userId = sess ? sess.user.id : (su && su.user ? su.user.id : null);
+        if (userId) {
+          // verifica se já tem indicador; se não, cria
+          const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
+          const whatsNorm = whats.replace(/\D/g,'');
+          const existente = await data.getIndicador(userId);
+          if (!existente) {
+            await data.criarIndicador({
+              user_id: userId, nome: name, whatsapp_norm: whatsNorm,
+              loja_id: lojaId, cpf, codigo, aceite_lgpd_em: new Date().toISOString(),
+            });
+          }
+        }
+      } catch(e) { console.error(e); toast('Erro ao salvar: ' + e.message); return; }
+    }
+
+    // ---- cria sessão e navega ----
     session = { name, email, layer, lojaId, whats, cpf };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
