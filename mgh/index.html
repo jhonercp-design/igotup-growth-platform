@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iGotUp · Marketing Growth Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="mh-header">
+    <div class="h-left">
+      <button class="icon-btn" id="toggleSide">☰</button>
+      <img class="h-logo" src="logo-clear.png" alt="iGotUp" />
+      <div class="h-title">
+        <strong>Marketing Growth Hub</strong>
+        <span id="crumb">Visão Geral</span>
+      </div>
+    </div>
+    <div class="h-right">
+      <div class="mps-mini" id="mpsMini">
+        <span class="mps-label">MPS</span>
+        <b id="mpsVal">812</b>
+      </div>
+      <button class="icon-btn alert-btn" id="alertsBtn">🎨<span class="alert-dot"></span></button>
+      <button class="icon-btn" id="createBtn" title="Criar conteúdo">＋</button>
+      <div class="h-user">
+        <div class="avatar">ML</div>
+        <div class="h-user-meta"><b>Marina L.</b><span>C5 · Cliente · Embassador</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="mh-body">
+    <aside class="mh-side" id="side">
+      <nav class="side-nav" id="sideNav"></nav>
+      <div class="side-foot">
+        <div class="mini-status"><span class="dot ok"></span> Link de indicação ativo</div>
+        <div class="mini-status"><span class="dot warn"></span> 2 publicações agendadas</div>
+      </div>
+    </aside>
+
+    <main class="mh-main">
+      <div class="mh-content" id="content"></div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="modal" class="modal" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

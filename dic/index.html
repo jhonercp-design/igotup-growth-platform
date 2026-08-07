@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iGotUp · Decision Intelligence Center</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ================= HEADER INTELIGENTE ================= -->
+  <header class="dic-header">
+    <div class="h-left">
+      <button class="icon-btn" id="toggleSide" title="Menu">☰</button>
+      <img class="h-logo" src="logo-clear.png" alt="iGotUp" />
+      <div class="h-title">
+        <strong>Decision Intelligence Center</strong>
+        <span id="crumb">Executive Command Center</span>
+      </div>
+    </div>
+    <div class="h-right">
+      <div class="h-search">
+        <span class="search-ico">🔍</span>
+        <input id="globalSearch" placeholder="Pesquisar parceiro, cliente, métrica…" />
+      </div>
+      <button class="icon-btn alert-btn" id="alertsBtn" title="Alertas críticos">🔔<span class="alert-dot" id="alertDot"></span></button>
+      <div class="period-seg" id="periodSeg">
+        <button data-p="hoje">Hoje</button>
+        <button data-p="7d">7d</button>
+        <button data-p="30d" class="active">30d</button>
+        <button data-p="90d">90d</button>
+        <button data-p="12m">12m</button>
+      </div>
+      <div class="h-user">
+        <div class="avatar" id="avatar">PG</div>
+        <div class="h-user-meta">
+          <b id="userName">Diretora Paula</b>
+          <span>C1 · Administrador Matriz</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dic-body">
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="dic-side" id="side">
+      <div class="side-top">
+        <div class="side-filter">
+          <span>🕹️ Camada</span>
+          <select id="layerSel">
+            <option>C1 · Admin Matriz</option>
+            <option>C2 · Equipe Matriz</option>
+            <option>C3 · Gestor Parceiro</option>
+            <option>C4 · Equipe Parceiro</option>
+            <option>C5 · Cliente</option>
+          </select>
+        </div>
+      </div>
+      <nav class="side-nav" id="sideNav"><!-- renderizada via JS --></nav>
+      <div class="side-foot">
+        <div class="mini-status"><span class="dot ok"></span> Sistema operacional</div>
+        <div class="mini-status"><span class="dot warn"></span> 3 alertas</div>
+      </div>
+    </aside>
+
+    <!-- ================= CONTEÚDO ================= -->
+    <main class="dic-main">
+      <!-- Filosofia: faixa das 4 perguntas -->
+      <div class="q-strip" id="qStrip"></div>
+
+      <!-- Área de widgets -->
+      <div class="dic-content" id="content"></div>
+    </main>
+
+    <!-- ================= PAINEL IA ================= -->
+    <aside class="dic-ai" id="aiPanel">
+      <div class="ai-head">
+        <span class="ai-pulse"></span>
+        <b>IA Executiva</b>
+        <button class="icon-btn" id="aiToggle">›</button>
+      </div>
+      <div class="ai-body" id="aiBody"></div>
+    </aside>
+  </div>
+
+  <div id="alerts" class="alerts-pop" hidden></div>
+  <div id="tooltip" class="tooltip" hidden></div>
+  <div id="drill" class="drill-modal" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
