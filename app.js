@@ -18,10 +18,13 @@
   };
 
   const MODULES = [
-    { id:'referral', ic:'🛒', nome:'Referral Engine', sub:'Crescimento', desc:'Central de indicação, carteira digital, gamificação, níveis e multi-tenant.', rota:'/referral/', tags:['Indicação','Wallet','Gamificação','Multi-tenant'] },
-    { id:'dic', ic:'🏛️', nome:'Decision Intelligence Center', sub:'Dados & IA', desc:'Command Center com 20 dashboards, mapa do Brasil, IA executiva e drill-downs.', rota:'/dic/', tags:['20 dashboards','IA','Mapa','Analytics'] },
-    { id:'mgh', ic:'🎨', nome:'Marketing Growth Hub', sub:'Conteúdo', desc:'Biblioteca de conteúdo, campanhas, IA de criação, MPS e embaixadores.', rota:'/mgh/', tags:['Conteúdo','IA','MPS','Embaixadores'] },
+    { id:'referral', ic:'🛒', nome:'Referral Engine', sub:'Crescimento', desc:'Central de indicação, carteira digital, gamificação, níveis e multi-tenant.', rota:'referral/', tags:['Indicação','Wallet','Gamificação','Multi-tenant'] },
+    { id:'dic', ic:'🏛️', nome:'Decision Intelligence Center', sub:'Dados & IA', desc:'Command Center com 20 dashboards, mapa do Brasil, IA executiva e drill-downs.', rota:'dic/', tags:['20 dashboards','IA','Mapa','Analytics'] },
+    { id:'mgh', ic:'🎨', nome:'Marketing Growth Hub', sub:'Conteúdo', desc:'Biblioteca de conteúdo, campanhas, IA de criação, MPS e embaixadores.', rota:'mgh/', tags:['Conteúdo','IA','MPS','Embaixadores'] },
   ];
+
+  // base do site (para caminhos relativos funcionarem em subdiretório)
+  const BASE = (window.location.pathname || '/').replace(/index\.html$/, '');
 
   let session = null;
   const ADM_EMAIL = 'jhonercp@gmail.com';
@@ -193,7 +196,8 @@
     $id('hubDash').hidden = true;
     const frame = $id('moduleFrame');
     frame.hidden = false;
-    frame.src = m.rota;
+    // caminho relativo à base do site (funciona em subdiretório)
+    frame.src = BASE + m.rota;
     $id('ahCrumb').textContent = m.nome;
     $$('.app-nav-item').forEach(i=>i.classList.toggle('active', i.dataset.mod===id));
     toast('Abrindo ' + m.nome + '…');
