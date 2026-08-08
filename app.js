@@ -75,7 +75,6 @@
   }
 
   // Cadastro completo com validação dos campos obrigatórios
-  // Cadastro + login integrados ao Supabase (cria usuário e indicador)
   async function login(){
     const lojaId = $id('ssoLoja').value;
     const name = $id('ssoName').value.trim();
@@ -84,17 +83,24 @@
     const cpf = $id('ssoCpf').value.trim();
     const senha = $id('ssoSenha').value;
 
-    // ---- validação de obrigatórios ----
-    if(!lojaId){ toast('Selecione a loja que fez a compra'); return; }
-    if(!name){ toast('Informe o nome completo (sem abreviação)'); return; }
-    if(name.split(' ').length < 2){ toast('Informe o nome completo (nome e sobrenome)'); return; }
-    if(!email){ toast('Informe o email'); return; }
-    if(!whats){ toast('Informe o WhatsApp'); return; }
-    if(!cpf){ toast('Informe o CPF'); return; }
-    if(!senha){ toast('Crie uma senha'); return; }
-    if(!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf) && !/^\d{11}$/.test(cpf)){ toast('CPF inválido'); return; }
-    const tel = whats.replace(/\D/g,'');
-    if(tel.length < 10 || tel.length > 11){ toast('WhatsApp inválido'); return; }
+    // ---- validação de obrigatórios (com mensagens claras) ----
+    if(!lojaId){ toast('⚠️ Selecione a loja que fez a compra'); return; }
+    if(!name){ toast('⚠️ Informe o nome completo (sem abreviação)'); return; }
+    if(name.trim().split(/\s+/).length < 2){ toast('⚠️ Informe nome completo com nome e sobrenome'); return; }
+    if(!email || !email.includes('@')){ toast('⚠️ Informe um email válido'); return; }
+    if(!whats){ toast('⚠️ Informe o WhatsApp'); return; }
+    if(!cpf){ toast('⚠️ Informe o CPF'); return; }
+    if(!senha){ toast('⚠️ Crie uma senha'); return; }
+
+    // CPF: aceita só dígitos, normaliza
+    const cpfDigitos = cpf.replace(/\D/g,'');
+    if(cpfDigitos.length !== 11){ toast('⚠️ CPF inválido — use 11 dígitos'); return; }
+
+    // WhatsApp: normaliza removendo DDI +55 e pontuação; aceita 10-11 dígitos
+    let tel = whats.replace(/\D/g,'');
+    if(tel.length === 13 && tel.startsWith('55')) tel = tel.slice(2); // remove +55
+    if(tel.length === 12 && tel.startsWith('55')) tel = tel.slice(2);
+    if(tel.length < 10 || tel.length > 11){ toast('⚠️ WhatsApp inválido — use DDD + número'); return; }
 
     // ---- camada: só ADM pode definir; senão, sempre cliente ----
     const isAdm = email.toLowerCase() === ADM_EMAIL;
@@ -105,7 +111,7 @@
     const modo = dataMode; // 'supabase' ou 'demo'
 
     // ---- cria sessão e NAVEGA IMEDIATAMENTE (sem esperar Supabase) ----
-    session = { name, email, layer, lojaId, whats, cpf };
+    session = { name, email, layer, lojaId, whats, cpf: cpfDigitos };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
     $id('ahRole').textContent = L.nome;
@@ -122,7 +128,7 @@
       (async () => {
         try {
           const { error } = await S.signUp(email, senha, {
-            full_name: name, loja: lojaId, whats, cpf, layer,
+            full_name: name, loja: lojaId, whats, cpf: cpfDigitos, layer,
           });
           if (error && /already|existente|registered|usuario|user/i.test(error.message || '')) {
             await S.signIn(email, senha);
@@ -133,10 +139,9 @@
             const existente = await data.getIndicador(userId).catch(()=>null);
             if (!existente) {
               const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
-              const whatsNorm = whats.replace(/\D/g,'');
               await data.criarIndicador({
-                user_id: userId, nome: name, whatsapp_norm: whatsNorm,
-                loja_id: lojaId, cpf, codigo, aceite_lgpd_em: new Date().toISOString(),
+                user_id: userId, nome: name, whatsapp_norm: tel,
+                loja_id: lojaId, cpf: cpfDigitos, codigo, aceite_lgpd_em: new Date().toISOString(),
               }).catch(e=>console.warn('indicador não criado:', e.message));
             }
           }
