@@ -164,15 +164,35 @@
   }
   function logout(){ session=null; show('login'); $id('moduleFrame').hidden=true; }
 
+  // ---------- CONTROLE DE ACESSO POR CAMADA (RBAC) ----------
+  // Define quais módulos cada camada pode acessar
+  const MODULE_ACCESS = {
+    'matriz_admin':   ['referral', 'dic', 'mgh'],   // C1: todos
+    'equipe_matriz':  ['referral', 'dic', 'mgh'],   // C2: operação
+    'gestor_parceiro':['referral', 'mgh'],          // C3: loja + marketing
+    'equipe_parceiro':['referral'],                 // C4: apenas indicação
+    'cliente':        ['referral'],                 // C5: apenas seu painel de indicação
+  };
+
+  // Módulos visíveis para a camada atual
+  function modulosPermitidos(){
+    const permitidos = MODULE_ACCESS[session ? session.layer : 'cliente'] || ['referral'];
+    return MODULES.filter(m => permitidos.includes(m.id));
+  }
+
   function renderNav(){
-    $id('appNav').innerHTML = MODULES.map(m => `
+    $id('appNav').innerHTML = modulosPermitidos().map(m => `
       <div class="app-nav-item" data-mod="${m.id}"><span class="ic">${m.ic}</span> ${m.nome}<span class="sub">${m.sub}</span></div>
     `).join('');
     $$('.app-nav-item').forEach(it => it.addEventListener('click', ()=>loadModule(it.dataset.mod)));
   }
 
-  // carrega o módulo no iframe via proxy
+  // carrega o módulo no iframe via proxy (protegido por permissão)
   function loadModule(id){
+    if (session && !modulosPermitidos().some(m=>m.id===id)) {
+      toast('Acesso não permitido para sua camada.');
+      return;
+    }
     const m = MODULES.find(x=>x.id===id); if(!m) return;
     $id('hubDash').hidden = true;
     const frame = $id('moduleFrame');
@@ -190,18 +210,15 @@
     $id('ahCrumb').textContent = 'Visão Geral';
     $$('.app-nav-item').forEach(i=>i.classList.remove('active'));
     const L = LAYERS[session.layer];
+    const modulos = modulosPermitidos();
+    const isAdmin = session.layer !== 'cliente';
     $id('hubDash').innerHTML = `
       <div class="hub-hero">
         <div><h2>Olá, ${esc(session.name.split(' ')[0])} 👋</h2>
-        <p>Acesso <b style="color:var(--accent)">${L.cam}</b> · ${L.nome} — você pode operar todos os módulos da plataforma com esta sessão única.</p></div>
-      </div>
-      <div class="hub-status">
-        <div class="hs"><span class="dot ok"></span> Referral Engine</div>
-        <div class="hs"><span class="dot ok"></span> Decision Intelligence Center</div>
-        <div class="hs"><span class="dot ok"></span> Marketing Growth Hub</div>
+        <p>Acesso <b style="color:var(--accent)">${L.cam}</b> · ${L.nome}${isAdmin ? ' — módulos conforme sua permissão.' : ' — este é o seu painel de indicação.'}</p></div>
       </div>
       <div class="hub-cards">
-        ${MODULES.map(m=>`
+        ${modulos.map(m=>`
           <div class="hub-card" data-open="${m.id}">
             <div class="hc-ic">${m.ic}</div>
             <h3>${m.nome}</h3>
