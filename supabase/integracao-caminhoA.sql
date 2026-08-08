@@ -23,6 +23,7 @@ alter table public.indicadores enable row level security;
 drop policy if exists "indicador own read insert" on public.indicadores;
 create policy "indicador own read insert" on public.indicadores
   for select using (auth.uid() = user_id);
+drop policy if exists "indicador own insert" on public.indicadores;
 create policy "indicador own insert" on public.indicadores
   for insert with check (auth.uid() = user_id OR auth.uid() is null);
 
