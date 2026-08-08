@@ -51,7 +51,18 @@
     mp.style.padding = '4px 11px'; mp.style.borderRadius = '20px'; mp.style.fontSize = '11px'; mp.style.fontWeight = '700';
   }
 
-  function show(view){ $id('view-login').hidden = view!=='login'; $id('view-app').hidden = view!=='app'; }
+  function show(view){
+    const login = $id('view-login');
+    const app = $id('view-app');
+    if (!login || !app) { console.error('[show] elementos não encontrados'); return; }
+    const showLogin = (view === 'login');
+    // usa hidden E style.display para garantir
+    login.hidden = !showLogin;
+    login.style.display = showLogin ? '' : 'none';
+    app.hidden = showLogin;
+    app.style.display = showLogin ? 'none' : '';
+    console.log('[show] view =', view, '| login.display =', login.style.display, '| app.display =', app.style.display);
+  }
 
   // Carrega as lojas reais do Supabase no campo "Loja que fez a compra"
   async function carregarLojas(){
@@ -117,8 +128,10 @@
     $id('ahRole').textContent = L.nome;
     $id('ahLayer').textContent = L.cam + ' · ' + L.nome;
     $id('ahAvatar').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    renderNav();
+    // navega PRIMEIRO (garante a troca de tela antes de qualquer coisa)
     show('app');
+    // depois popula
+    renderNav();
     showMode();
     loadHub();
     toast(isAdm ? 'Bem-vindo, Administrador! 👑' : 'Conta criada como Cliente. Bem-vindo!');
