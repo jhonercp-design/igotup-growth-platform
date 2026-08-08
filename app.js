@@ -129,11 +129,7 @@
     $id('ahLayer').textContent = L.cam + ' · ' + L.nome;
     $id('ahAvatar').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     // navega PRIMEIRO (garante a troca de tela antes de qualquer coisa)
-    show('app');
-    // depois popula
-    renderNav();
-    showMode();
-    loadHub();
+    finalizarEntrada();
     toast(isAdm ? 'Bem-vindo, Administrador! 👑' : 'Conta criada como Cliente. Bem-vindo!');
 
     // ---- Supabase em SEGUNDO PLANO (não bloqueia a navegação) ----
@@ -230,9 +226,78 @@
     $$('.hub-card').forEach(c=>c.addEventListener('click', ()=>loadModule(c.dataset.open)));
   }
 
+  // ---------- ABAS LOGIN / CADASTRO ----------
+  function alternarAbas(aba){
+    const showLogin = (aba === 'login');
+    $id('formLogin').hidden = !showLogin;
+    $id('formCadastro').hidden = showLogin;
+    $id('tabLoginBtn').classList.toggle('active', showLogin);
+    $id('tabCadastroBtn').classList.toggle('active', !showLogin);
+    if (!showLogin) { carregarLojas().catch(()=>{}); }
+  }
+
+  // ---------- LOGIN (quem já tem cadastro) ----------
+  async function entrar(){
+    const email = $id('loginEmail').value.trim();
+    const senha = $id('loginSenha').value;
+    if(!email || !senha){ toast('⚠️ Informe email e senha'); return; }
+
+    const S = window.iGotUpSupabase;
+    if (dataMode === 'supabase' && S && S.client) {
+      const { data: sess, error } = await S.signIn(email, senha);
+      if (error) { toast('⚠️ Email ou senha incorretos'); return; }
+      // busca o perfil/indicador
+      const userId = sess.user ? sess.user.id : null;
+      const layer = await detectarCamada(email, userId);
+      session = { name: email.split('@')[0], email, layer };
+    } else {
+      // modo demo: entra direto
+      const layer = email.toLowerCase() === ADM_EMAIL ? 'matriz_admin' : 'cliente';
+      session = { name: email.split('@')[0], email, layer };
+    }
+    finalizarEntrada();
+    toast('Bem-vindo de volta! 👋');
+  }
+
+  // detecta a camada do usuário logado (ADM ou cliente; futuro: ler do banco)
+  async function detectarCamada(email, userId){
+    if (email.toLowerCase() === ADM_EMAIL) return 'matriz_admin';
+    if (userId) {
+      const ind = await window.iGotUpData.getIndicador(userId).catch(()=>null);
+      if (ind && ind.codigo) return 'cliente';
+    }
+    return 'cliente';
+  }
+
+  // finaliza a entrada comum (login ou cadastro)
+  function finalizarEntrada(){
+    const L = LAYERS[session.layer];
+    $id('ahName').textContent = session.name;
+    $id('ahRole').textContent = L.nome;
+    $id('ahLayer').textContent = L.cam + ' · ' + L.nome;
+    $id('ahAvatar').textContent = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    show('app');
+    renderNav();
+    showMode();
+    loadHub();
+  }
+
   // eventos — registrados de forma robusta
   function registrarEventos() {
     try {
+      // abas
+      $id('tabLoginBtn').addEventListener('click', ()=>alternarAbas('login'));
+      $id('tabCadastroBtn').addEventListener('click', ()=>alternarAbas('cadastro'));
+      // login
+      $id('loginBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        try { await entrar(); } catch (err) { console.error('[login] erro:', err); toast('Erro ao entrar: ' + err.message); }
+      });
+      ['loginEmail','loginSenha'].forEach(id=>{
+        const el = $id(id);
+        if (el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); entrar(); } });
+      });
+      // cadastro
       $id('ssoBtn').addEventListener('click', async (e) => {
         e.preventDefault();
         try {

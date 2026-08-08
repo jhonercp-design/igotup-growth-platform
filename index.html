@@ -22,41 +22,63 @@
         <div class="sso-meta"><span class="dot ok"></span> <span id="ssoStatus">Verificando conexão…</span></div>
       </div>
       <div class="sso-form">
-        <h2>Cadastro</h2>
-        <div id="admBadge" class="adm-badge" hidden>👑 Modo Administrador — você pode definir categoria</div>
+        <!-- Abas: Login / Cadastro -->
+        <div class="sso-tabs">
+          <button class="sso-tab active" id="tabLoginBtn">Entrar</button>
+          <button class="sso-tab" id="tabCadastroBtn">Criar conta</button>
+        </div>
 
-        <label>Loja que fez a compra <span class="req">*</span>
-          <select id="ssoLoja"><option value="">Selecione a loja</option></select>
-        </label>
-        <label>Nome completo (sem abreviação) <span class="req">*</span>
-          <input type="text" id="ssoName" placeholder="Ex.: Maria da Silva Santos" />
-        </label>
-        <label>Email <span class="req">*</span>
-          <input type="email" id="ssoEmail" placeholder="voce@email.com" />
-        </label>
-        <label>WhatsApp <span class="req">*</span>
-          <input type="text" id="ssoWhats" placeholder="(51) 99999-9999" />
-        </label>
-        <label>CPF <span class="req">*</span>
-          <input type="text" id="ssoCpf" placeholder="000.000.000-00" />
-        </label>
-        <label>Senha
-          <input type="password" id="ssoSenha" placeholder="Crie uma senha" />
-        </label>
+        <!-- ===== ABA LOGIN (quem já tem cadastro) ===== -->
+        <div id="formLogin">
+          <h2>Entrar</h2>
+          <label>Email <span class="req">*</span>
+            <input type="email" id="loginEmail" placeholder="voce@email.com" />
+          </label>
+          <label>Senha <span class="req">*</span>
+            <input type="password" id="loginSenha" placeholder="Sua senha" />
+          </label>
+          <button class="btn-primary" id="loginBtn">Entrar</button>
+          <p class="hint">Acesse com seu email e senha cadastrados.</p>
+        </div>
 
-        <!-- Categoria: SÓ aparece para o ADM Master -->
-        <label id="ssoCategoriaWrap" hidden>Categoria / Camada
-          <select id="ssoCategoria">
-            <option value="cliente">C5 · Cliente (padrão)</option>
-            <option value="equipe_parceiro">C4 · Equipe Parceiro</option>
-            <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
-            <option value="equipe_matriz">C2 · Equipe Matriz</option>
-            <option value="matriz_admin">C1 · Administrador Matriz</option>
-          </select>
-        </label>
+        <!-- ===== ABA CADASTRO (novos usuários) ===== -->
+        <div id="formCadastro" hidden>
+          <h2>Cadastro</h2>
+          <div id="admBadge" class="adm-badge" hidden>👑 Modo Administrador — você pode definir categoria</div>
 
-        <button class="btn-primary" id="ssoBtn">Criar conta</button>
-        <p class="hint">Todos os campos marcados com * são obrigatórios. Cadastros comuns são criados sempre como <b>Cliente</b>.</p>
+          <label>Loja que fez a compra <span class="req">*</span>
+            <select id="ssoLoja"><option value="">Selecione a loja</option></select>
+          </label>
+          <label>Nome completo (sem abreviação) <span class="req">*</span>
+            <input type="text" id="ssoName" placeholder="Ex.: Maria da Silva Santos" />
+          </label>
+          <label>Email <span class="req">*</span>
+            <input type="email" id="ssoEmail" placeholder="voce@email.com" />
+          </label>
+          <label>WhatsApp <span class="req">*</span>
+            <input type="text" id="ssoWhats" placeholder="(51) 99999-9999" />
+          </label>
+          <label>CPF <span class="req">*</span>
+            <input type="text" id="ssoCpf" placeholder="000.000.000-00" />
+          </label>
+          <label>Senha
+            <input type="password" id="ssoSenha" placeholder="Crie uma senha" />
+          </label>
+
+          <!-- Categoria: SÓ aparece para o ADM Master -->
+          <label id="ssoCategoriaWrap" hidden>Categoria / Camada
+            <select id="ssoCategoria">
+              <option value="cliente">C5 · Cliente (padrão)</option>
+              <option value="equipe_parceiro">C4 · Equipe Parceiro</option>
+              <option value="gestor_parceiro">C3 · Gestor Parceiro</option>
+              <option value="equipe_matriz">C2 · Equipe Matriz</option>
+              <option value="matriz_admin">C1 · Administrador Matriz</option>
+            </select>
+          </label>
+
+          <button class="btn-primary" id="ssoBtn">Criar conta</button>
+          <p class="hint">Todos os campos marcados com * são obrigatórios. Cadastros comuns são criados sempre como <b>Cliente</b>.</p>
+        </div>
       </div>
     </div>
   </section>
