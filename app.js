@@ -142,14 +142,19 @@
     if (modo === 'supabase' && S && S.client) {
       (async () => {
         try {
-          const { error } = await S.signUp(email, senha, {
+          // cria usuário e captura o id direto do retorno
+          const { data: su, error } = await S.signUp(email, senha, {
             full_name: name, loja: lojaId, whats, cpf: cpfDigitos, layer,
           });
+          let userId = (su && su.user) ? su.user.id : null;
           if (error && /already|existente|registered|usuario|user/i.test(error.message || '')) {
             await S.signIn(email, senha);
           }
-          const sess = await S.getSession();
-          const userId = (sess && sess.user) ? sess.user.id : null;
+          // garante o user_id via sessão, se ainda não veio
+          if (!userId) {
+            const sess = await S.getSession();
+            userId = (sess && sess.user) ? sess.user.id : null;
+          }
           if (userId) {
             const existente = await data.getIndicador(userId).catch(()=>null);
             if (!existente) {
