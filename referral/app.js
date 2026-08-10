@@ -32,9 +32,15 @@
     dataMode = 'demo';
     try { if (window.iGotUpData) dataMode = window.iGotUpData.init(window.SUPABASE_CONFIG); } catch(e){ dataMode='demo'; }
 
-    if (!session) { setStatus('Acesso pelo hub (login da plataforma) para ver suas indicações.', 'err'); return; }
+    if (!session) {
+      setStatus('Acesso pelo hub (login da plataforma) para ver suas indicações.', 'err');
+      return;
+    }
 
     $id('refUser').textContent = session.name || session.email || 'Cliente';
+
+    // mostra o painel mesmo antes de carregar (evita layout vazio)
+    const panel = $id('refPanel'); if (panel) panel.hidden = false;
 
     setStatus('Carregando suas indicações…');
     await carregarIndicador();
@@ -47,12 +53,27 @@
     if (dataMode !== 'supabase' || !window.iGotUpData) return;
     try {
       const sess = await window.iGotUpSupabase.getSession();
+      const userId = (sess && sess.user) ? sess.user.id : (session ? null : null);
+      // busca por user_id
       if (sess && sess.user) {
         indicador = await window.iGotUpData.getIndicador(sess.user.id).catch(()=>null);
-        // fallback: buscar pelo user_id na sessão do hub
-        if (!indicador && session) {
-          indicador = await window.iGotUpData.getIndicador(sess.user.id).catch(()=>null);
-        }
+      }
+      // se não encontrou e temos dados do hub, cria o indicador automaticamente
+      if (!indicador && session && sess && sess.user) {
+        const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
+        const nome = session.name || sess.user.email || 'Cliente';
+        const cpf = session.cpf || '';
+        const lojaId = session.lojaId || null;
+        indicador = await window.iGotUpData.criarIndicador({
+          user_id: sess.user.id,
+          nome,
+          whatsapp_norm: '+55' + (session.whats ? String(session.whats).replace(/\D/g,'').slice(-11) : '00000000000'),
+          loja_id: lojaId,
+          cpf,
+          codigo,
+          cidade: '',
+          aceite_lgpd_em: new Date().toISOString(),
+        }).catch(e=>{ console.warn('não criou indicador', e.message); return null; });
       }
     } catch(e) { console.warn('indicador não encontrado', e.message); }
   }
