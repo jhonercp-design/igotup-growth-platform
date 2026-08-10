@@ -483,8 +483,17 @@ select { appearance: none; cursor: pointer; background-image: linear-gradient(45
 .copy-row input { flex: 1; font-family: monospace; letter-spacing: .3px; }
 
 /* Garante centralização total do painel */
+html.ref, body.ref {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
 body.ref {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+body.ref .ref-wrap {
+  flex: 1;
+  max-width: 1000px;
 }
