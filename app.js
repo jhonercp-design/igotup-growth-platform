@@ -161,7 +161,7 @@
       })();
     }
   }
-  function logout(){ session=null; show('login'); $id('moduleFrame').hidden=true; }
+  function logout(){ session=null; try { localStorage.removeItem('igotup_session'); } catch(e){} show('login'); $id('moduleFrame').hidden=true; }
 
   // ---------- CONTROLE DE ACESSO POR CAMADA (RBAC) ----------
   // Define quais módulos cada camada pode acessar
@@ -273,8 +273,10 @@
     return 'cliente';
   }
 
-  // finaliza a entrada comum (login ou cadastro)
+  // finaliza a entrada comum (login ou cadastro) e persiste a sessão p/ os módulos
   function finalizarEntrada(){
+    // persiste a sessão para os módulos (Referral, DIC, MGH) lerem
+    try { localStorage.setItem('igotup_session', JSON.stringify(session)); } catch(e){}
     const L = LAYERS[session.layer];
     $id('ahName').textContent = session.name;
     $id('ahRole').textContent = L.nome;

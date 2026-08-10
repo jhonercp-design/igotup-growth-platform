@@ -450,3 +450,11 @@ select { appearance: none; cursor: pointer; background-image: linear-gradient(45
   .login-hero { border-right: none; border-bottom: 1px solid var(--border-weak); }
   .invite-card { padding: var(--sp-7) var(--sp-5); }
 }
+
+/* Badges de status do funil real */
+.badge.nova { background: rgba(90,176,255,.15); color: #5ab0ff; }
+.badge.em_contato { background: rgba(246,196,83,.15); color: #f6c453; }
+.badge.test_ride { background: rgba(167,139,250,.15); color: #a78bfa; }
+.badge.comprou { background: rgba(61,226,155,.16); color: #3de29b; }
+.badge.comissao_paga { background: rgba(61,226,155,.25); color: #1fc97d; font-weight:800; }
+.badge.nao_converteu, .badge.expirada, .badge.rejeitada { background: rgba(255,93,107,.15); color: #ff5d6b; }
