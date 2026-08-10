@@ -100,6 +100,14 @@
       return lsGet('indicadores').find(i => i.codigo === codigo) || null;
     },
 
+    async getIndicadorByWhats(whats) {
+      if (this.mode === 'supabase') {
+        const { data } = await this.client.from('indicadores').select('*').eq('whatsapp_norm', whats).maybeSingle();
+        return data;
+      }
+      return lsGet('indicadores').find(i => i.whatsapp_norm === whats) || null;
+    },
+
     // ---------- INDICAÇÕES (funil real) ----------
     // status enum: nova | em_contato | test_ride | comprou | comissao_paga | nao_converteu | expirada | rejeitada
     async getIndicacoes(indicadorId) {

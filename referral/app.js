@@ -52,22 +52,28 @@
   async function carregarIndicador(){
     if (dataMode !== 'supabase' || !window.iGotUpData) return;
     try {
+      const data = window.iGotUpData;
       const sess = await window.iGotUpSupabase.getSession();
-      const userId = (sess && sess.user) ? sess.user.id : (session ? null : null);
-      // busca por user_id
+      // 1) busca por user_id (ligação com o login)
       if (sess && sess.user) {
-        indicador = await window.iGotUpData.getIndicador(sess.user.id).catch(()=>null);
+        indicador = await data.getIndicador(sess.user.id).catch(()=>null);
       }
-      // se não encontrou e temos dados do hub, cria o indicador automaticamente
+      // 2) se não achou, busca pelo whatsapp do usuário (acha o indicador existente)
+      if (!indicador && session && session.whats) {
+        const whats55 = '+55' + String(session.whats).replace(/\D/g,'').slice(-11);
+        indicador = await data.getIndicadorByWhats(whats55).catch(()=>null);
+      }
+      // 3) se ainda não achou e temos dados do hub, cria (e liga o user_id)
       if (!indicador && session && sess && sess.user) {
         const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
         const nome = session.name || sess.user.email || 'Cliente';
         const cpf = session.cpf || '';
         const lojaId = session.lojaId || null;
-        indicador = await window.iGotUpData.criarIndicador({
+        const whats55 = '+55' + (session.whats ? String(session.whats).replace(/\D/g,'').slice(-11) : '00000000000');
+        indicador = await data.criarIndicador({
           user_id: sess.user.id,
           nome,
-          whatsapp_norm: '+55' + (session.whats ? String(session.whats).replace(/\D/g,'').slice(-11) : '00000000000'),
+          whatsapp_norm: whats55,
           loja_id: lojaId,
           cpf,
           codigo,
