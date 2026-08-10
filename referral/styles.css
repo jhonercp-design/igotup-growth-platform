@@ -460,8 +460,7 @@ select { appearance: none; cursor: pointer; background-image: linear-gradient(45
 .badge.nao_converteu, .badge.expirada, .badge.rejeitada { background: rgba(255,93,107,.15); color: #ff5d6b; }
 
 /* ===== Layout do painel do indicador ===== */
-body { margin: 0; min-height: 100vh; }
-.ref-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+.ref-wrap { max-width: 1000px; width: 100%; margin: 0 auto; padding: 24px 20px 60px; }
 .ref-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
 .ref-brand { display: flex; align-items: center; gap: 12px; }
 .ref-brand .brand-mark { height: 34px; }
@@ -482,3 +481,10 @@ body { margin: 0; min-height: 100vh; }
 .xp-chip { font-weight: 700; color: var(--accent); margin-left: 8px; }
 .copy-row { display: flex; gap: 8px; margin-top: 6px; }
 .copy-row input { flex: 1; font-family: monospace; letter-spacing: .3px; }
+
+/* Garante centralização total do painel */
+body.ref {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
