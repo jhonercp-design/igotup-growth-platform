@@ -17,3 +17,4 @@ sb_secret_*
 
 # A chave publishable é pública (pode ir), mas o config pode conter credenciais
 # Se quiser proteger, adicione: supabase/config.js
+.wrangler/
