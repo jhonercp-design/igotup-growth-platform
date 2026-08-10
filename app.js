@@ -295,7 +295,11 @@
       // login
       $id('loginBtn').addEventListener('click', async (e) => {
         e.preventDefault();
+        const btn = $id('loginBtn');
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Entrando…';
         try { await entrar(); } catch (err) { console.error('[login] erro:', err); toast('Erro ao entrar: ' + err.message); }
+        finally { btn.disabled = false; btn.textContent = original; }
       });
       ['loginEmail','loginSenha'].forEach(id=>{
         const el = $id(id);
@@ -304,12 +308,16 @@
       // cadastro
       $id('ssoBtn').addEventListener('click', async (e) => {
         e.preventDefault();
+        const btn = $id('ssoBtn');
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Criando conta…';
         try {
           await login();
         } catch (err) {
           console.error('[login] erro capturado:', err);
           toast('Ocorreu um erro: ' + err.message + '. Tente novamente.');
         }
+        finally { btn.disabled = false; btn.textContent = original; }
       });
       $id('btnLogout').addEventListener('click', logout);
       $id('btnMenu').addEventListener('click', ()=>{ $id('appSide').classList.toggle('collapsed'); $id('appSide').classList.toggle('open'); });
