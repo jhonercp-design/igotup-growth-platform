@@ -32,15 +32,15 @@
     dataMode = 'demo';
     try { if (window.iGotUpData) dataMode = window.iGotUpData.init(window.SUPABASE_CONFIG); } catch(e){ dataMode='demo'; }
 
+    // SEMPRE mostra o painel (evita layout vazio/deslocado à esquerda)
+    const panel = $id('refPanel'); if (panel) panel.hidden = false;
+
     if (!session) {
       setStatus('Acesso pelo hub (login da plataforma) para ver suas indicações.', 'err');
       return;
     }
 
     $id('refUser').textContent = session.name || session.email || 'Cliente';
-
-    // mostra o painel mesmo antes de carregar (evita layout vazio)
-    const panel = $id('refPanel'); if (panel) panel.hidden = false;
 
     setStatus('Carregando suas indicações…');
     await carregarIndicador();
