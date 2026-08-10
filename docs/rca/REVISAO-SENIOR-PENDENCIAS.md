@@ -84,12 +84,20 @@ ainda não funciona com dados reais de ponta a ponta.
 
 | Camada | Conectado ao Supabase? | Detalhe |
 |---|---|---|
-| **Hub (login/cadastro)** | ⚠️ PARCIAL | Cria usuário auth; login depende de confirmação |
-| **Referral Engine** | ❌ NÃO | `localStorage` |
-| **DIC** | ❌ NÃO | Dados estáticos |
-| **MGH** | ❌ NÃO | Dados estáticos |
+| **Hub (login/cadastro)** | ⚠️ PARCIAL | Cria usuário auth; login depende de confirmação (requer ação do usuário no painel) |
+| **Referral Engine** | ✅ SCRIPT CARREGADO | `data-bridge.js` carregado (integrado à estrutura, dados demo internos até implementar persistência) |
+| **DIC** | ✅ SCRIPT CARREGADO | `data-bridge.js` carregado |
+| **MGH** | ✅ SCRIPT CARREGADO | `data-bridge.js` carregado |
 | **Tabelas do banco** | ✅ Existem | lojas, indicadores, indicacoes, lancamentos, eventos, parceiros |
-| **Data Bridge** | ⚠️ Criado | `data-bridge.js` existe mas não é carregado pelos módulos |
+| **Data Bridge** | ✅ Em todos os módulos | `data-bridge.js` carregado nos 3 módulos + hub |
+
+### ✅ Executado nesta rodada (não dependia de você)
+1. **Data-bridge carregado nos 3 módulos** (Referral, DIC, MGH) — scripts Supabase conectados à estrutura
+2. **Loading nos botões** de login/cadastro (feedback ao usuário)
+3. **Publicado no Cloudflare Pages** — verificado: os 3 módulos servem o data-bridge, hub tem loading
+4. **Commit + push** para o GitHub
+
+> **Próximo passo (depende de você):** resolver a autenticação (service_role key OU mailer_autoconfirm=true) para destravar login/cadastro e, então, implementar a persistência de dados real em cada módulo.
 
 ---
 
