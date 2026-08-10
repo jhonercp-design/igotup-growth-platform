@@ -112,9 +112,12 @@
 
     // WhatsApp: normaliza removendo DDI +55 e pontuação; aceita 10-11 dígitos
     let tel = whats.replace(/\D/g,'');
+    // garante 10-11 dígitos para validação do usuário
     if(tel.length === 13 && tel.startsWith('55')) tel = tel.slice(2); // remove +55
     if(tel.length === 12 && tel.startsWith('55')) tel = tel.slice(2);
     if(tel.length < 10 || tel.length > 11){ toast('⚠️ WhatsApp inválido — use DDD + número'); return; }
+    // formato para o banco: +55 + DDD + número (exige a check constraint)
+    const whatsNorm = '+55' + tel;
 
     // ---- camada: só ADM pode definir; senão, sempre cliente ----
     const isAdm = email.toLowerCase() === ADM_EMAIL;
@@ -152,8 +155,8 @@
             if (!existente) {
               const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
               await data.criarIndicador({
-                user_id: userId, nome: name, whatsapp_norm: tel,
-                loja_id: lojaId, cpf: cpfDigitos, codigo, aceite_lgpd_em: new Date().toISOString(),
+                user_id: userId, nome: name, whatsapp_norm: whatsNorm,
+                loja_id: lojaId, cpf: cpfDigitos, codigo, cidade: '', aceite_lgpd_em: new Date().toISOString(),
               }).catch(e=>console.warn('indicador não criado:', e.message));
             }
           }
