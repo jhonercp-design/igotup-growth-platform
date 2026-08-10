@@ -160,7 +160,9 @@
     },
 
     async creditar(indicadorId, valor, tipo, descricao) {
-      const rec = { id: uid(), indicador_id: indicadorId, indicacao_id: null, tipo, valor, status: 'liberado', criado_em: new Date().toISOString(), descricao };
+      // normaliza o tipo para os valores aceitos pela check constraint (venda | bonus_ciclo)
+      const tipoNorm = (tipo === 'bonus_ciclo' || tipo === 'bônus' || tipo === 'bonus') ? 'bonus_ciclo' : 'venda';
+      const rec = { id: uid(), indicador_id: indicadorId, indicacao_id: null, tipo: tipoNorm, valor, status: 'liberado', criado_em: new Date().toISOString(), descricao: descricao || '' };
       if (this.mode === 'supabase') {
         await this.client.from('lancamentos').insert(rec);
         return;

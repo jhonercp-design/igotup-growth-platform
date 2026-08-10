@@ -156,10 +156,13 @@
     if (!nome || !contato) { toast('Preencha nome e contato'); return; }
     if (!indicador) { toast('Cadastro de indicador pendente. Entre pelo hub.'); return; }
 
-    const whats = contato.replace(/\D/g,'');
+    let whats = contato.replace(/\D/g,'');
+    if (whats.length === 13 && whats.startsWith('55')) whats = whats.slice(2);
+    if (whats.length === 12 && whats.startsWith('55')) whats = whats.slice(2);
+    const whatsNorm = '+55' + whats; // formato exigido pela check constraint
     if (dataMode === 'supabase' && window.iGotUpData) {
       await window.iGotUpData.criarIndicacao({
-        indicador_id: indicador.id, nome, whatsapp_norm: whats,
+        indicador_id: indicador.id, nome, whatsapp_norm: whatsNorm,
         cidade: session.cidade || '', loja_id: indicador.loja_id || null,
       }).catch(e=>toast('Erro ao salvar: '+e.message));
     }
