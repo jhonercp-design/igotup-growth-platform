@@ -1,66 +1,58 @@
 /* =========================================================
-   iGotUp · Referral Engine — VERSÃO REAL (Supabase)
+   iGotUp · Minhas Indicações — VERSÃO REAL (Supabase)
    Lê a sessão do hub e as indicações reais do banco.
    ========================================================= */
 (function () {
   'use strict';
-  const $ = s => document.querySelector(s);
   const $id = s => document.getElementById(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  // Configuração do programa (valores oficiais)
-  const SETTINGS = {
-    recompensaIndicador: 200,
-    descontoIndicado: 200,
-    bonusCiclo: 500,
-    bonusCompras: 5,
-  };
-  // Status do funil real (enum do banco)
-  const STATUS = ['nova','em_contato','test_ride','comprou','comissao_paga','nao_converteu','expirada','rejeitada'];
+  const SETTINGS = { recompensaIndicador: 200, descontoIndicado: 200 };
   const STATUS_LABEL = { nova:'Nova', em_contato:'Em contato', test_ride:'Teste ride', comprou:'Comprou', comissao_paga:'Comissão paga', nao_converteu:'Não converteu', expirada:'Expirada', rejeitada:'Rejeitada' };
 
-  let session = null;      // usuário do hub
-  let indicador = null;    // perfil de indicador no banco
-  let indicacoes = [];
-  let lancamentos = [];
-  let dataMode = 'demo';
+  let session = null, indicador = null, indicacoes = [], lancamentos = [], dataMode = 'demo';
 
   function fmt(v){ return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
   function fmtD(d){ try{ return new Date(d).toLocaleDateString('pt-BR'); }catch(e){ return ''; } }
   function toast(m){ const t=$id('toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,3000); }
 
+  function setStatus(msg, tipo){
+    const st = $id('refStatus');
+    if (!st) return;
+    st.hidden = false;
+    st.textContent = msg;
+    st.className = 'ref-status ' + (tipo || '');
+  }
+  function hideStatus(){ const st=$id('refStatus'); if(st) st.hidden=true; }
+
   // ---------- Inicialização ----------
   async function init(){
-    // 1) carrega a sessão do hub
     try { session = JSON.parse(localStorage.getItem('igotup_session') || 'null'); } catch(e){ session=null; }
 
-    // 2) inicializa Supabase
     dataMode = 'demo';
-    try {
-      if (window.iGotUpData) {
-        dataMode = window.iGotUpData.init(window.SUPABASE_CONFIG);
-      }
-    } catch(e) { dataMode = 'demo'; }
+    try { if (window.iGotUpData) dataMode = window.iGotUpData.init(window.SUPABASE_CONFIG); } catch(e){ dataMode='demo'; }
 
-    if (!session) {
-      // sem sessão do hub → mostra aviso (não é login próprio)
-      showAviso();
-      return;
-    }
+    if (!session) { setStatus('Acesso pelo hub (login da plataforma) para ver suas indicações.', 'err'); return; }
 
-    // 3) busca o indicador real do usuário
+    $id('refUser').textContent = session.name || session.email || 'Cliente';
+
+    setStatus('Carregando suas indicações…');
     await carregarIndicador();
     await carregarDados();
+    hideStatus();
     render();
   }
 
   async function carregarIndicador(){
     if (dataMode !== 'supabase' || !window.iGotUpData) return;
     try {
-      // tenta achar por user_id; senão pelo email
       const sess = await window.iGotUpSupabase.getSession();
       if (sess && sess.user) {
         indicador = await window.iGotUpData.getIndicador(sess.user.id).catch(()=>null);
+        // fallback: buscar pelo user_id na sessão do hub
+        if (!indicador && session) {
+          indicador = await window.iGotUpData.getIndicador(sess.user.id).catch(()=>null);
+        }
       }
     } catch(e) { console.warn('indicador não encontrado', e.message); }
   }
@@ -68,7 +60,6 @@
   async function carregarDados(){
     if (dataMode !== 'supabase' || !window.iGotUpData) return;
     const data = window.iGotUpData;
-    // carrega indicações do indicador
     if (indicador && indicador.id) {
       indicacoes = await data.getIndicacoes(indicador.id).catch(()=>[]);
       lancamentos = await data.getLancamentos(indicador.id).catch(()=>[]);
@@ -76,50 +67,40 @@
   }
 
   // ---------- Render ----------
-  function showAviso(){
-    const cont = $id('view-cliente');
-    if (!cont) return;
-    // esconde views, mostra aviso
-    document.querySelectorAll('.page').forEach(p=>p.hidden=true);
-    if ($id('view-cliente')) {
-      $id('view-cliente').hidden = false;
-      $id('cliName').textContent = 'Não autenticado';
-      const box = $id("cliStats"); if (box) box.innerHTML = '<div class="panel"><p>Acesso pelo hub (login da plataforma) para ver suas indicações.</p></div>';
-    }
-  }
-
   function render(){
-    document.querySelectorAll('.page').forEach(p=>p.hidden=true);
-    const nome = session ? (session.name || session.email || '').split(' ')[0] : 'Cliente';
-    $id('cliName').textContent = nome;
+    const panel = $id('refPanel');
+    if (!panel) return;
+    panel.hidden = false;
 
-    // stats
+    if (!indicador) {
+      setStatus('Cadastro de indicador pendente. Entre no hub e refaça o cadastro com seus dados.', 'warn');
+    } else {
+      hideStatus();
+    }
+
     const ativas = indicacoes.filter(i=>['nova','em_contato','test_ride','comprou'].includes(i.status));
     const compradas = indicacoes.filter(i=>i.status==='comprou' || i.status==='comissao_paga').length;
-    const comissaoTotal = lancamentos.reduce((s,l)=>s+(Number(l.valor)||0),0);
     const saldo = lancamentos.filter(l=>l.status==='pago'||l.status==='liberado').reduce((s,l)=>s+(Number(l.valor)||0),0);
 
-    $id("cliStats").innerHTML = [
+    const cards = $id('statsCards');
+    if (cards) cards.innerHTML = [
       {n:indicacoes.length, l:'Indicações'},
       {n:ativas.length, l:'Em andamento'},
       {n:compradas, l:'Compras'},
       {n:fmt(saldo), l:'Comissões'},
     ].map(c=>`<div class="stat"><div class="num">${c.n}</div><div class="lbl">${c.l}</div></div>`).join('');
 
-    // nível/wallet
     $id('cliWallet').textContent = fmt(saldo);
     $id('cliLevel').textContent = nivelAtual(compradas);
     $id('cliXp').textContent = compradas + ' compras';
-    $id('cliProgressLabel').textContent = 'Status das suas indicações abaixo';
+    $id('cliProgressLabel').textContent = 'Acompanhe o status das suas indicações abaixo.';
 
-    // materiais (código do indicador)
     const codigo = indicador && indicador.codigo ? indicador.codigo : '—';
     $id('cliCupom').value = codigo;
     $id('cliLink').value = 'https://igotup-growth-platform.pages.dev/?r=' + codigo;
     $id('cliHint').innerHTML = 'Você ganha <b>'+fmt(SETTINGS.recompensaIndicador)+'</b> por compra confirmada. O convidado recebe <b>'+fmt(SETTINGS.descontoIndicado)+'</b> de desconto.';
 
     renderRefRows();
-    $id('view-cliente').hidden = false;
   }
 
   function nivelAtual(compras){
@@ -135,7 +116,7 @@
     const tbody = $id('cliRefRows');
     if (!indicacoes.length) {
       tbody.innerHTML = '';
-      $id('cliEmpty').textContent = 'Nenhuma indicação ainda. Use o botão "Indicar" para começar.';
+      $id('cliEmpty').textContent = 'Nenhuma indicação ainda. Faça sua primeira indicação acima.';
       return;
     }
     $id('cliEmpty').textContent = '';
@@ -159,7 +140,9 @@
     let whats = contato.replace(/\D/g,'');
     if (whats.length === 13 && whats.startsWith('55')) whats = whats.slice(2);
     if (whats.length === 12 && whats.startsWith('55')) whats = whats.slice(2);
-    const whatsNorm = '+55' + whats; // formato exigido pela check constraint
+    if (whats.length < 10 || whats.length > 11) { toast('WhatsApp inválido'); return; }
+    const whatsNorm = '+55' + whats;
+
     if (dataMode === 'supabase' && window.iGotUpData) {
       await window.iGotUpData.criarIndicacao({
         indicador_id: indicador.id, nome, whatsapp_norm: whatsNorm,
@@ -171,6 +154,12 @@
     await carregarDados();
     render();
   }
+
+  // ---------- Copy ----------
+  document.addEventListener('click', (e)=>{
+    const cb = e.target.closest('.btn-copy');
+    if (cb) { const el = $id(cb.dataset.copy); if (el) toast('Copiado: ' + (el.value||'')); }
+  });
 
   // ---------- Eventos ----------
   $id('btnSubmitReferral').addEventListener('click', indicar);

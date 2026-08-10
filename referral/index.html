@@ -3,82 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iGotUp · Growth Referral Engine</title>
+  <title>iGotUp · Minhas Indicações</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- ======= TOPO ======= -->
-  <header class="topbar">
-    <div class="brand" id="brandLink">
-      <img class="brand-mark" src="img/logo-clear.png" alt="iGotUp" />
-      <div class="brand-text">
-        <strong>iGotUp</strong>
-        <span>Growth Referral Engine</span>
-      </div>
-    </div>
-    <nav class="nav" id="mainNav" hidden></nav>
-    <div class="top-user" id="topUser" hidden>
-      <span class="tenant-pill" id="tenantPill"></span>
-      <div class="role-badge" id="roleBadge"></div>
-      <span id="topUserName"></span>
-      <button class="btn btn-ghost btn-sm" id="btnLogout">Sair</button>
-    </div>
-  </header>
-
-  <!-- ======= LOGIN ======= -->
-  <section id="view-login" class="page login-page">
-    <div class="login-card">
-      <div class="login-hero">
-        <img class="login-mark" src="img/logo-clear.png" alt="iGotUp" />
-        <h1>Growth Referral Engine</h1>
-        <p>Plataforma Multi-Tenant · 5 camadas de acesso.</p>
-        <ul class="perks">
-          <li>Administrador Matriz</li>
-          <li>Equipe Matriz</li>
-          <li>Gestor Parceiro</li>
-          <li>Equipe Parceiro</li>
-          <li>Cliente Indicador</li>
-        </ul>
-        <p class="hint">Cada camada tem permissões, dashboard e IA próprios.</p>
-      </div>
-      <div class="login-form">
-        <h2>Entrar no painel</h2>
-        <label>Camada de acesso
-          <select id="loginLayer">
-            <option value="cliente">Camada 5 · Cliente Indicador</option>
-            <option value="equipe_parceiro">Camada 4 · Equipe Parceiro</option>
-            <option value="gestor_parceiro">Camada 3 · Gestor Parceiro</option>
-            <option value="equipe_matriz">Camada 2 · Equipe Matriz</option>
-            <option value="matriz_admin">Camada 1 · Administrador Matriz</option>
-          </select>
-        </label>
-        <label>Perfil <input type="text" id="loginName" placeholder="Nome do usuário" /></label>
-        <label>Email <input type="email" id="loginEmail" placeholder="voce@igotup.com.br" /></label>
-        <label id="loginRoleWrap" hidden>Sou
-          <select id="loginRole"></select>
-        </label>
-        <label id="loginPartnerWrap" hidden>Loja parceira
-          <select id="loginPartner"></select>
-        </label>
-        <button class="btn btn-primary btn-block" id="btnLogin">Entrar no painel</button>
-        <p class="hint">Demo: dados salvos no navegador. Cada camada visualiza apenas o seu nível.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 5 · CLIENTE ======= -->
-  <section id="view-cliente" class="page" hidden>
-    <div class="container">
-      <div class="welcome">
+  <main class="ref-wrap">
+    <div class="ref-head">
+      <div class="ref-brand">
+        <img class="brand-mark" src="img/logo-clear.png" alt="iGotUp" />
         <div>
-          <h2>Olá, <span id="cliName"></span> 👋</h2>
-          <p class="muted" id="cliTenant"></p>
+          <strong>Minhas Indicações</strong>
+          <span>Painel do indicador</span>
         </div>
-        <button class="btn btn-primary" data-nav="cliente_indicar">+ Indicar agora</button>
       </div>
+      <div class="ref-user" id="refUser"></div>
+    </div>
 
-      <div class="cards" id="cliStats"></div>
+    <!-- Estado de carregamento / erro -->
+    <div id="refStatus" class="ref-status" hidden></div>
 
+    <!-- Painel principal -->
+    <div id="refPanel" hidden>
+      <!-- Stats -->
+      <div class="cards" id="statsCards"></div>
+
+      <!-- Nível / wallet -->
       <div class="panel progress-panel">
         <div class="progress-head">
           <div>
@@ -86,242 +35,54 @@
             <div><span class="level-badge" id="cliLevel"></span> <span class="xp-chip" id="cliXp"></span></div>
           </div>
           <div class="wallet-chip">
-            <span class="muted small">Carteira · Wallet</span>
+            <span class="muted small">Comissões</span>
             <strong id="cliWallet"></strong>
-            <button class="btn btn-ghost btn-sm" data-nav="cliente_wallet">Ver extrato</button>
           </div>
         </div>
-        <div class="progress-track"><div class="progress-bar" id="cliProgress"></div></div>
         <div class="muted small" id="cliProgressLabel"></div>
       </div>
 
+      <!-- Materiais -->
       <div class="panel">
         <h3>Seus materiais de indicação</h3>
         <div class="grid-2">
           <div class="material">
-            <label>Link exclusivo</label>
-            <div class="copy-row"><input type="text" id="cliLink" readonly /><button class="btn btn-ghost btn-copy" data-copy="cliLink">Copiar</button></div>
-          </div>
-          <div class="material">
-            <label>Código / cupom</label>
+            <label>Código de indicação</label>
             <div class="copy-row"><input type="text" id="cliCupom" readonly /><button class="btn btn-ghost btn-copy" data-copy="cliCupom">Copiar</button></div>
           </div>
           <div class="material">
-            <label>QR Code exclusivo</label>
-            <div class="qr-box" id="cliQr"></div>
+            <label>Link de indicação</label>
+            <div class="copy-row"><input type="text" id="cliLink" readonly /><button class="btn btn-ghost btn-copy" data-copy="cliLink">Copiar</button></div>
           </div>
         </div>
         <p class="hint" id="cliHint"></p>
       </div>
 
+      <!-- Nova indicação -->
       <div class="panel">
-        <div class="panel-head"><h3>Minhas indicações</h3><span class="muted" id="cliRefCount"></span></div>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Convidado</th><th>Contato</th><th>Data</th><th>Status</th><th>Recompensa</th><th></th></tr></thead><tbody id="cliRefRows"></tbody></table></div>
-        <p class="hint" id="cliEmpty"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 5 · INDICAR ======= -->
-  <section id="view-cliente_indicar" class="page" hidden>
-    <div class="container narrow">
-      <h2>Indicar um novo contato</h2>
-      <p class="muted">Você ganha R$200 por compra confirmada; o convidado recebe R$200 de desconto.</p>
-      <div class="panel form-card">
-        <label>Nome do convidado <input type="text" id="refName" placeholder="Nome completo" /></label>
-        <label>Contato (email ou WhatsApp) <input type="text" id="refContact" placeholder="email ou (55) 99999-9999" /></label>
-        <div class="reward-preview" id="rewardPreview"></div>
+        <h3>Fazer uma indicação</h3>
+        <div class="grid-2">
+          <label>Nome do convidado <input type="text" id="refName" placeholder="Nome completo" /></label>
+          <label>WhatsApp do convidado <input type="text" id="refContact" placeholder="(51) 99999-9999" /></label>
+        </div>
         <button class="btn btn-primary btn-block" id="btnSubmitReferral">Enviar indicação</button>
         <p class="hint ok" id="formMsg" hidden></p>
       </div>
-    </div>
-  </section>
 
-  <!-- ======= CAMADA 5 · WALLET ======= -->
-  <section id="view-cliente_wallet" class="page" hidden>
-    <div class="container narrow">
-      <h2>Carteira Digital</h2>
-      <div class="panel wallet-summary">
-        <div class="wallet-chip"><span class="muted small">Saldo disponível</span><strong id="walSaldo"></strong></div>
-        <button class="btn btn-primary" id="btnResgatar">Solicitar Pix</button>
-      </div>
+      <!-- Minhas indicações -->
       <div class="panel">
-        <div class="panel-head"><h3>Extrato</h3></div>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr></thead><tbody id="walExtrato"></tbody></table></div>
+        <div class="panel-head"><h3>Minhas indicações</h3><span class="muted" id="cliRefCount"></span></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Convidado</th><th>WhatsApp</th><th>Data</th><th>Status</th><th>Comissão</th></tr></thead><tbody id="cliRefRows"></tbody></table></div>
+        <p class="hint" id="cliEmpty"></p>
       </div>
     </div>
-  </section>
-
-  <!-- ======= CAMADA 4 · EQUIPE PARCEIRO ======= -->
-  <section id="view-equipe_parceiro" class="page" hidden>
-    <div class="container">
-      <h2>Painel da Equipe · <span id="eqpLoja"></span></h2>
-      <p class="muted">Camada 4 · Usuários internos da loja parceira.</p>
-      <div class="cards" id="eqpStats"></div>
-      <div class="grid-2">
-        <div class="panel">
-          <h3>Metas individuais</h3>
-          <div id="eqpMetas"></div>
-        </div>
-        <div class="panel">
-          <h3>Missões e conquistas</h3>
-          <div id="eqpMissoes"></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Registrar cliente / enviar convite</h3></div>
-        <div class="copy-row" style="margin-top:6px"><input type="text" id="eqpLink" readonly /><button class="btn btn-ghost btn-copy" data-copy="eqpLink">Copiar</button></div>
-        <p class="hint">Vendedor registra cliente e envia convite via link/código da loja.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 3 · GESTOR PARCEIRO ======= -->
-  <section id="view-gestor_parceiro" class="page" hidden>
-    <div class="container">
-      <div class="welcome">
-        <div>
-          <h2>Gestor · <span id="gesLoja"></span></h2>
-          <p class="muted">Camada 3 · Operação da loja parceira.</p>
-        </div>
-        <div class="ranking-chip"><span class="muted small">Ranking regional</span><strong id="gesRanking"></strong></div>
-      </div>
-      <div class="cards" id="gesStats"></div>
-      <div class="grid-2">
-        <div class="panel">
-          <h3>Equipe da loja</h3>
-          <div id="gesEquipe"></div>
-        </div>
-        <div class="panel">
-          <h3>IA contextualizada · Gestor</h3>
-          <ul class="ia-list" id="gesIa"></ul>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Campanha local</h3><button class="btn btn-ghost btn-sm" data-nav="gestor_parceiro_campanha">+ Nova campanha</button></div>
-        <div id="gesCampanhas"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 2 · EQUIPE MATRIZ ======= -->
-  <section id="view-equipe_matriz" class="page" hidden>
-    <div class="container">
-      <div class="welcome">
-        <div>
-          <h2>Equipe Matriz · <span id="eqmPerfil"></span></h2>
-          <p class="muted">Camada 2 · Operação iGotUp.</p>
-        </div>
-      </div>
-      <div class="cards" id="eqmStats"></div>
-      <div class="grid-2">
-        <div class="panel">
-          <h3>Parceiros sob responsabilidade</h3>
-          <div id="eqmParceiros"></div>
-        </div>
-        <div class="panel">
-          <h3>SLA e pendências</h3>
-          <div id="eqmSla"></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Fila de leads (prioridade IA)</h3></div>
-        <div id="eqmLeads"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 1 · ADMIN MATRIZ ======= -->
-  <section id="view-matriz_admin" class="page" hidden>
-    <div class="container">
-      <div class="welcome">
-        <div>
-          <h2>Dashboard Executivo · Matriz</h2>
-          <p class="muted">Camada 1 · Controle total da rede.</p>
-        </div>
-        <button class="btn btn-primary" data-nav="matriz_admin_campanhas">+ Campanha nacional</button>
-      </div>
-      <div class="cards" id="admStats"></div>
-      <div class="grid-2">
-        <div class="panel">
-          <h3>Ranking nacional de parceiros</h3>
-          <div id="admRanking"></div>
-        </div>
-        <div class="panel">
-          <h3>Alertas de fraude</h3>
-          <div id="admFraude"></div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Parceiros em destaque</h3></div>
-        <div id="admDestaques"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>IA · Recomendações estratégicas</h3></div>
-        <ul class="ia-list" id="admIa"></ul>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Trilha de auditoria</h3><span class="muted small">append-only</span></div>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Data</th><th>Camada</th><th>Ator</th><th>Ação</th><th>Tenant</th></tr></thead><tbody id="admAudit"></tbody></table></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CAMADA 1 · CAMPANHAS ======= -->
-  <section id="view-matriz_admin_campanhas" class="page" hidden>
-    <div class="container narrow">
-      <h2>Campanhas nacionais</h2>
-      <div class="panel form-card">
-        <label>Nome da campanha <input type="text" id="campNome" placeholder="Ex.: Verão iGotUp" /></label>
-        <label>Tipo
-          <select id="campTipo">
-            <option value="sazonal">Sazonal</option>
-            <option value="bonus">Bônus 2x</option>
-            <option value="lançamento">Lançamento</option>
-          </select>
-        </label>
-        <button class="btn btn-primary btn-block" id="btnCriarCampanha">Criar campanha</button>
-      </div>
-      <div class="panel"><h3>Campanhas ativas</h3><div id="admCampanhas"></div></div>
-    </div>
-  </section>
-
-  <!-- ======= REGRAS / CONFIG (comum a camadas 1-2) ======= -->
-  <section id="view-regras" class="page" hidden>
-    <div class="container narrow">
-      <h2>Regras do programa</h2>
-      <div class="panel rules" id="rulesBox"></div>
-    </div>
-  </section>
-
-  <!-- ======= PÁGINA DO CONVIDADO (pública) ======= -->
-  <section id="view-convidado" class="page" hidden>
-    <div class="container narrow">
-      <div class="invite-card">
-        <img class="login-mark" src="img/logo-clear.png" alt="iGotUp" />
-        <h2 id="inviteTitle">Você foi convidado! 🎉</h2>
-        <p id="inviteText"></p>
-        <div class="invite-coupon">
-          <span>Seu cupom de desconto</span>
-          <div class="coupon-code" id="inviteCupom">---</div>
-        </div>
-        <a class="btn btn-primary btn-block" href="#" id="inviteCta">Comprar na iGotUp</a>
-        <p class="hint">Demo: página de destino que o convidado vê ao abrir o link de indicação.</p>
-      </div>
-    </div>
-  </section>
-
-  <footer class="foot">
-    <img class="foot-mark" src="img/logo-clear.png" alt="iGotUp" />
-    <span>iGotUp · Growth Referral Engine — arquitetura Multi-Tenant (demo)</span>
-  </footer>
+  </main>
 
   <div id="toast" class="toast" hidden></div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../supabase/config.js"></script>
   <script src="../supabase/supabase-client.js"></script>
   <script src="../supabase/data-bridge.js"></script>
-<!-- v1786370667 -->
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

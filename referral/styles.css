@@ -458,3 +458,27 @@ select { appearance: none; cursor: pointer; background-image: linear-gradient(45
 .badge.comprou { background: rgba(61,226,155,.16); color: #3de29b; }
 .badge.comissao_paga { background: rgba(61,226,155,.25); color: #1fc97d; font-weight:800; }
 .badge.nao_converteu, .badge.expirada, .badge.rejeitada { background: rgba(255,93,107,.15); color: #ff5d6b; }
+
+/* ===== Layout do painel do indicador ===== */
+body { margin: 0; min-height: 100vh; }
+.ref-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+.ref-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.ref-brand { display: flex; align-items: center; gap: 12px; }
+.ref-brand .brand-mark { height: 34px; }
+.ref-brand strong { display: block; font-size: 1.05rem; }
+.ref-brand span { font-size: .72rem; color: var(--muted); }
+.ref-user { font-weight: 700; color: var(--accent); font-size: .95rem; }
+.ref-status { padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; font-size: .92rem; font-weight: 600; text-align: center; }
+.ref-status.err { background: rgba(255,93,107,.12); color: #ff7a86; border: 1px solid rgba(255,93,107,.3); }
+.ref-status.warn { background: rgba(246,196,83,.12); color: var(--gold); border: 1px solid rgba(246,196,83,.3); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 700px){ .grid-2 { grid-template-columns: 1fr; } }
+.progress-panel { margin-bottom: 20px; }
+.progress-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.wallet-chip { text-align: right; }
+.wallet-chip strong { font-size: 1.6rem; font-weight: 800; color: var(--accent); display: block; }
+.muted.small { font-size: .72rem; text-transform: uppercase; letter-spacing: .4px; }
+.level-badge { font-size: .86rem; font-weight: 800; padding: 5px 14px; border-radius: 20px; background: var(--surface-3); border: 1px solid var(--border-strong); }
+.xp-chip { font-weight: 700; color: var(--accent); margin-left: 8px; }
+.copy-row { display: flex; gap: 8px; margin-top: 6px; }
+.copy-row input { flex: 1; font-family: monospace; letter-spacing: .3px; }
