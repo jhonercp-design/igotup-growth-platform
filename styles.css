@@ -110,3 +110,8 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
   border: none;
   display: block;
 }
+
+/* CORREÇÃO ESTRUTURAL: quando um módulo está aberto, o iframe ocupa todo o espaço */
+.app-body { align-items: stretch; }
+#moduleFrame.module-frame { flex: 1; }
+.app-main { overflow: hidden; }

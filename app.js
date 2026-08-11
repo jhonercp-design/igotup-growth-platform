@@ -201,9 +201,14 @@
       return;
     }
     const m = MODULES.find(x=>x.id===id); if(!m) return;
+    // esconde o hub-dash E o main (que reserva espaço), e mostra o iframe ocupando tudo
     $id('hubDash').hidden = true;
+    $id('appMain').style.display = 'none';
     const frame = $id('moduleFrame');
     frame.hidden = false;
+    frame.style.display = 'block';
+    frame.style.flex = '1';
+    frame.style.width = '100%';
     // caminho relativo à base do site (funciona em subdiretório)
     frame.src = BASE + m.rota;
     $id('ahCrumb').textContent = m.nome;
@@ -214,6 +219,8 @@
   // dashboard inicial do hub
   function loadHub(){
     $id('moduleFrame').hidden = true;
+    $id('moduleFrame').style.display = 'none';
+    $id('appMain').style.display = '';
     $id('hubDash').hidden = false;
     $id('ahCrumb').textContent = 'Visão Geral';
     $$('.app-nav-item').forEach(i=>i.classList.remove('active'));
