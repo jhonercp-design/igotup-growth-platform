@@ -100,3 +100,13 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 .app-main > #hubDash, .app-main > .hub-dash { width: 100%; max-width: 1200px; margin: 0 auto; }
 .module-frame { width: 100%; height: 100%; border: none; }
 #hubDash { width: 100%; }
+
+/* Correção: iframe dos módulos com altura fixa para exibir conteúdo completo */
+.app-main .module-frame,
+#moduleFrame.module-frame {
+  width: 100%;
+  height: calc(100vh - 58px);
+  min-height: 600px;
+  border: none;
+  display: block;
+}
