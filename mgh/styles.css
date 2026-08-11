@@ -1,3 +1,6 @@
+
+/* FORÇA hidden a esconder mesmo com display:grid do modal */
+[hidden] { display: none !important; }
 :root {
   --bg: #080c15; --panel: #0e1523; --panel2: #141d2f; --panel3: #1b2639;
   --line: rgba(255,255,255,.07); --line2: rgba(255,255,255,.15);

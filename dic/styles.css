@@ -1,3 +1,6 @@
+
+/* FORÇA hidden a esconder mesmo com display:grid dos modais */
+[hidden] { display: none !important; }
 :root {
   --bg: #070b13;
   --panel: #0d131f;
