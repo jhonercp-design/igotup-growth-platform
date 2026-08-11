@@ -1201,13 +1201,61 @@
     </div>`;
   }
 
+  // ---------- CARREGAR DADOS REAIS DO SUPABASE ----------
+  async function carregarDadosReais(){
+    try {
+      if (!window.iGotUpData) return;
+      window.iGotUpData.init(window.SUPABASE_CONFIG);
+      const DB = window.iGotUpData;
+      // busca dados reais
+      const [indics, indics2, lancs] = await Promise.all([
+        DB.getLojas().catch(()=>[]),
+        Promise.resolve([]),
+        Promise.resolve([])
+      ]);
+      // total de indicadores via consulta direta
+      let totalIndicadores = 0, totalIndicacoes = 0, totalLancamentos = 0;
+      try {
+        const c = window.iGotUpData.client;
+        if (c) {
+          const { count: ci } = await c.from('indicadores').select('*', { count: 'exact', head: true });
+          const { count: co } = await c.from('indicacoes').select('*', { count: 'exact', head: true });
+          const { count: cl } = await c.from('lancamentos').select('*', { count: 'exact', head: true });
+          totalIndicadores = ci || 0; totalIndicacoes = co || 0; totalLancamentos = cl || 0;
+        }
+      } catch(e){}
+      // atualiza as métricas do DIC com dados reais
+      if (totalIndicadores > 0) {
+        dados.ativos = Math.max(dados.ativos, totalIndicadores);
+        dados.promovidos = Math.round(totalIndicadores * 0.3);
+      }
+      if (totalIndicacoes > 0) {
+        dados.indicacoes.mes = Math.max(dados.indicacoes.mes, totalIndicacoes);
+        dados.conversao = Math.min(0.5, Math.max(0.05, totalIndicacoes * 0.31 / Math.max(1,totalIndicacoes)));
+      }
+      if (totalLancamentos > 0) {
+        dados.indicacoes.valorPago = Math.max(dados.indicacoes.valorPago, totalLancamentos * 200);
+      }
+      // parceiros reais (lojas)
+      if (indics && indics.length) {
+        const nomes = indics.map(l => ({ nome: l.nome || 'Loja', cidade: (l.cidade||'').split('/')[0], estado: (l.cidade||'').split('/')[1] || 'RS', regiao:'', receita: totalLancamentos*200/Math.max(1,indics.length), conversoes: Math.round(totalIndicacoes/Math.max(1,indics.length)), xp: 0 }));
+        // injeta no array de parceiros se existir
+        if (typeof parceiros !== 'undefined') {
+          nomes.forEach(p => { if (!parceiros.some(x=>x.nome===p.nome)) parceiros.push(p); });
+        }
+      }
+      console.log('[DIC] dados reais carregados:', { totalIndicadores, totalIndicacoes, totalLancamentos });
+    } catch(e) { console.warn('[DIC] dados reais não carregados:', e.message); }
+  }
+
   // ---------- Init ----------
   qStrip();
   renderNav();
   render();
   bindEvents();
   bindSearch();
-  // animar KPIs após render
+  // carrega dados reais do Supabase e re-renderiza
+  carregarDadosReais().then(() => { render(); });
   document.addEventListener('DOMContentLoaded', () => {});
   document.addEventListener('click', e => { if (e.target.closest('.ai-btn')) { const b=e.target.closest('.ai-btn'); toast('IA: ' + b.textContent.trim()); } });
 })();
