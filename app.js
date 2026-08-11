@@ -108,9 +108,13 @@
     if(!cidade){ toast('⚠️ Informe a cidade'); return; }
     if(!senha){ toast('⚠️ Crie uma senha'); return; }
 
-    // CPF: aceita só dígitos, normaliza
+    // CPF: normaliza e valida (dígitos + dígitos verificadores)
     const cpfDigitos = cpf.replace(/\D/g,'');
-    if(cpfDigitos.length !== 11){ toast('⚠️ CPF inválido — use 11 dígitos'); return; }
+    const M = window.iGotUpMasks;
+    if (cpfDigitos.length !== 11 || (M && !M.validaCpf(cpfDigitos))) {
+      toast('⚠️ CPF inválido — confira os 11 dígitos');
+      return;
+    }
 
     // WhatsApp: normaliza removendo DDI +55 e pontuação; aceita 10-11 dígitos
     let tel = whats.replace(/\D/g,'');
@@ -349,6 +353,13 @@
         const el = $id(id);
         if (el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); login(); } });
       });
+      // ---- máscaras de entrada (WhatsApp, CPF, Cidade) ----
+      const M = window.iGotUpMasks;
+      if (M) {
+        $id('ssoWhats').addEventListener('input', (e) => { e.target.value = M.maskWhats(e.target.value); });
+        $id('ssoCpf').addEventListener('input', (e) => { e.target.value = M.maskCpf(e.target.value); });
+        $id('ssoCidade').addEventListener('input', (e) => { e.target.value = M.maskCidade(e.target.value); });
+      }
     } catch(e) {
       console.error('[eventos] erro ao registrar:', e);
     }

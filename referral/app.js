@@ -209,6 +209,9 @@
   // ---------- Eventos ----------
   $id('btnSubmitReferral').addEventListener('click', indicar);
   ['refName','refContact'].forEach(id=>{ const el=$id(id); if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter') indicar(); }); });
+  // máscara de WhatsApp no campo do convidado
+  const M = window.iGotUpMasks;
+  if (M) $id('refContact').addEventListener('input', (e) => { e.target.value = M.maskWhats(e.target.value); });
 
   init();
 })();
