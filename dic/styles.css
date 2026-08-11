@@ -296,3 +296,37 @@ body {
    e expandir workspace para usar todo o espaço (evita sidebar dupla + vão) */
 body.in-hub .dic-side { display: none; }
 body.in-hub .dic-body { grid-template-columns: minmax(0, 1fr) var(--ai); }
+
+/* ===== Executive Command Center — novas seções ===== */
+.growth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; }
+.grow-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.grow-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.grow-head b { font-size: 12.5px; }
+.grow-del { font-weight: 800; font-size: 11px; }
+.grow-row { display: flex; justify-content: space-between; font-size: 11.5px; padding: 2px 0; color: var(--dim); }
+.grow-row b { color: var(--text); }
+
+.cfunnel { display: flex; flex-direction: column; gap: 5px; }
+.cf-row { display: flex; align-items: center; gap: 8px; }
+.cf-row:hover .cf-bar { filter: brightness(1.15); }
+.cf-label { width: 100px; font-size: 11px; color: var(--dim); }
+.cf-bar-wrap { flex: 1; }
+.cf-bar { height: 24px; border-radius: 5px; display: flex; align-items: center; padding: 0 10px; color: #04230f; font-weight: 800; font-size: 11px; min-width: 50px; white-space: nowrap; }
+.cf-conv { width: 46px; font-size: 11px; color: var(--muted); text-align: right; }
+
+.op-alert { border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; padding: 9px 12px; margin-bottom: 8px; }
+.op-alert.critico { border-left-color: var(--red); background: rgba(255,93,107,.07); }
+.op-alert.medio { border-left-color: var(--warn); background: rgba(255,159,67,.06); }
+.op-alert.ok { border-left-color: var(--accent); background: rgba(61,226,155,.06); }
+.op-al-head { font-size: 12px; margin-bottom: 4px; }
+.op-al-body { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
+.op-imp { color: var(--dim); }
+.op-act { color: var(--accent); font-weight: 700; }
+
+.intel { display: flex; flex-direction: column; gap: 8px; }
+.intel-sec { border-left: 3px solid var(--blue); padding: 6px 10px; background: var(--panel2); border-radius: 0 8px 8px 0; }
+.intel-sec.warn { border-left-color: var(--warn); }
+.intel-sec.ok { border-left-color: var(--accent); }
+.intel-tag { font-size: 9.5px; font-weight: 800; color: var(--muted); letter-spacing: .4px; }
+.intel-sec p { margin: 3px 0 0; font-size: 12px; color: var(--text); }
+.intel-btn { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(61,226,155,.3); border-radius: 8px; padding: 8px; text-align: center; font-weight: 800; font-size: 12px; cursor: pointer; }

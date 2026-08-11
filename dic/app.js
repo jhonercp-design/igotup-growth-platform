@@ -283,6 +283,24 @@
           {ic:'🎯', t:'380 promotores identificados', d:'com alta propensão a indicar.'}
         ])})}
       </div>
+
+      <!-- GROWTH PERFORMANCE -->
+      <div class="panel full" style="margin-top:12px">
+        <div class="panel-h"><h3>Growth Performance</h3><span class="ph-sub">Motores de crescimento · volume, conversão, receita</span></div>
+        ${growthPerformance()}
+      </div>
+
+      <!-- COMMERCIAL FUNNEL + PARTNER PERFORMANCE -->
+      <div class="grid g-2" style="margin-top:12px">
+        ${panel({t:'Commercial Funnel', s:'clique nas etapas para detalhar', body: commercialFunnel()})}
+        ${panel({t:'Partner Performance', s:'top performers e risco', body: partnerPerformance()})}
+      </div>
+
+      <!-- OPERATIONAL ALERTS + INTELLIGENCE -->
+      <div class="grid g-2" style="margin-top:12px">
+        ${panel({t:'Operational Alerts', s:'severidade, impacto e ação', body: operationalAlerts()})}
+        ${panel({t:'Intelligence Panel', s:'IA executiva · copiloto', body: intelligencePanel()})}
+      </div>
     `;
     return content;
   }
@@ -308,6 +326,83 @@
     return items.map(i => `<div class="hbar"><div class="hb-label">${i.l}</div>
       <div class="hb-track"><div class="hb-fill" style="width:${(i.v/max)*100}%;background:${i.c}"></div></div>
       <div class="hb-val">${i.v}%</div></div>`).join('');
+  }
+
+  // ---------- GROWTH PERFORMANCE (canais de crescimento) ----------
+  function growthPerformance() {
+    const canais = [
+      { n:'Referral', ic:'🔁', vol:'1.284', conv:'31%', rec:fmt(200000), del:'▲ 22%', c:'var(--accent)' },
+      { n:'Paid Traffic', ic:'📢', vol:'2.340', conv:'18%', rec:fmt(320000), del:'▲ 9%', c:'var(--blue)' },
+      { n:'SDR', ic:'📞', vol:'890', conv:'27%', rec:fmt(180000), del:'▲ 14%', c:'var(--violet)' },
+      { n:'Parceiros', ic:'🏪', vol:'1.460', conv:'24%', rec:fmt(260000), del:'▲ 17%', c:'var(--gold)' },
+      { n:'Afiliados', ic:'🤳', vol:'412', conv:'21%', rec:fmt(95000), del:'▲ 11%', c:'var(--info)' },
+    ];
+    return `<div class="growth-grid">${canais.map(c => `
+      <div class="grow-card" style="border-left:3px solid ${c.c}">
+        <div class="grow-head"><span>${c.ic} <b>${c.n}</b></span><span class="grow-del" style="color:${c.c}">${c.del}</span></div>
+        <div class="grow-row"><span>Volume</span><b>${c.vol}</b></div>
+        <div class="grow-row"><span>Conversão</span><b>${c.conv}</b></div>
+        <div class="grow-row"><span>Receita</span><b>${c.rec}</b></div>
+      </div>`).join('')}</div>`;
+  }
+
+  // ---------- COMMERCIAL FUNNEL ----------
+  function commercialFunnel() {
+    const etapas = [
+      { l:'Leads', v:10420, p:100, c:'var(--accent)' },
+      { l:'Qualificados', v:4376, p:42, c:'var(--blue)' },
+      { l:'Oportunidades', v:1356, p:31, c:'var(--info)' },
+      { l:'Propostas', v:325, p:24, c:'var(--violet)' },
+      { l:'Vendas', v:124, p:38, c:'var(--gold)' },
+    ];
+    const max = etapas[0].v;
+    return `<div class="cfunnel">${etapas.map((e,i) => `
+      <div class="cf-row" data-ftapa="${e.l}" style="cursor:pointer">
+        <div class="cf-label">${e.l}</div>
+        <div class="cf-bar-wrap"><div class="cf-bar" style="width:${(e.v/max)*100}%;background:${e.c}">${fmtN(e.v)}</div></div>
+        <div class="cf-conv">${i>0?'↓ '+pct(e.p)+'':''}</div>
+      </div>`).join('')}</div>`;
+  }
+
+  // ---------- PARTNER PERFORMANCE ----------
+  function partnerPerformance() {
+    const rows = parceiros.slice().sort((a,b)=>b.receita-a.receita).map(p => {
+      const media = parceiros.reduce((s,x)=>s+x.receita,0)/parceiros.length;
+      const status = p.receita > media*1.2 ? '<span class="badge ok">Acima</span>' : p.receita < media*0.8 ? '<span class="badge red">Risco</span>' : '<span class="badge warn">Normal</span>';
+      const cresc = p.xp > 6000 ? '<span class="up">▲</span>' : '<span class="down">▼</span>';
+      return [p.nome, fmtN(p.conv), fmt(p.receita), pct(p.conv/(p.xp||100)/2), `${cresc} ${p.xp} XP`, status];
+    });
+    return table(['Parceiro','Vendas','Receita','Conversão','Crescimento','Status'], rows);
+  }
+
+  // ---------- OPERATIONAL ALERTS ----------
+  function operationalAlerts() {
+    const alerts = [
+      { ic:'🔴', sev:'critico', t:'Conversão do parceiro Canoas II caiu 23%', i:'Alto impacto em receita', a:'Agendar call com gestor' },
+      { ic:'🟡', sev:'medio', t:'CAC aumentou 14% nos últimos 7 dias', i:'Custo de aquisição subindo', a:'Revisar canais pagos' },
+      { ic:'🟢', sev:'ok', t:'Porto Alegre apresenta crescimento de 17%', i:'Oportunidade de expansão', a:'Aumentar investimento local' },
+      { ic:'🟡', sev:'medio', t:'34 leads aguardam atendimento', i:'SLA em risco', a:'Priorizar fila SDR' },
+      { ic:'🔴', sev:'critico', t:'8 parceiros estão abaixo da meta', i:'Necessidade de intervenção', a:'Ativar plano de recuperação' },
+    ];
+    return alerts.map(a => `
+      <div class="op-alert ${a.sev}">
+        <div class="op-al-head">${a.ic} <b>${a.t}</b></div>
+        <div class="op-al-body"><span class="op-imp">${a.i}</span><span class="op-act">→ ${a.a}</span></div>
+      </div>`).join('');
+  }
+
+  // ---------- INTELIGENCE PANEL (IA Executiva estruturada) ----------
+  function intelligencePanel() {
+    return `
+      <div class="intel">
+        <div class="intel-sec"><div class="intel-tag">1 · O QUE ACONTECEU?</div><p>Receita está 12% acima da média diária.</p></div>
+        <div class="intel-sec"><div class="intel-tag">2 · POR QUÊ?</div><p>+17% Porto Alegre · +11% Referral · +8% parceiros premium.</p></div>
+        <div class="intel-sec warn"><div class="intel-tag">RISCO</div><p>Conversão do canal SDR caiu 6,4%.</p></div>
+        <div class="intel-sec ok"><div class="intel-tag">3 · O QUE VAI ACONTECER?</div><p>Projeção R$3,9M · 87% de atingir meta.</p></div>
+        <div class="intel-sec ok"><div class="intel-tag">4 · O QUE FAZER?</div><p>Expandir investimento em Porto Alegre.</p></div>
+        <div class="intel-sec ok"><div class="intel-tag">5 · IMPACTO</div><p>+R$ 240 mil potenciais.</p></div>
+        <div class="intel-btn">Aplicar recomendação</div>
+      </div>`;
   }
 
   // ---------- REFERRAL ----------
