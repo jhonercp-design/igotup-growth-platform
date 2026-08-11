@@ -175,3 +175,8 @@ label input,label select,label textarea{width:100%}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel3);border:1px solid var(--line2);padding:11px 20px;border-radius:10px;font-weight:700;box-shadow:var(--shadow);z-index:60;font-size:12.5px}
+
+
+/* Quando MGH carregado no hub (iframe), esconder sidebar interna */
+body.in-hub .mh-side { display: none; }
+body.in-hub .mh-body { display: block; }

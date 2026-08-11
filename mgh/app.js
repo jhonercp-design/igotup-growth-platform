@@ -5,6 +5,15 @@
    ========================================================= */
 (function () {
   'use strict';
+
+  // Detecta se o MGH está carregado dentro do hub (iframe) → modo integrado
+  try {
+    if (window.self !== window.top && (window.location.pathname || '').includes('/mgh/')) {
+      document.documentElement.classList.add('in-hub');
+      document.body.classList.add('in-hub');
+    }
+  } catch(e) { /* cross-origin */ }
+
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const $id = s => document.getElementById(s);

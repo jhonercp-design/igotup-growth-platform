@@ -291,3 +291,8 @@ body {
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel3); border: 1px solid var(--line2); padding: 11px 20px; border-radius: 10px; font-weight: 700; box-shadow: var(--shadow); z-index: 60; font-size: 12.5px; }
 
 @media (max-width: 1300px){ :root{ --ai:280px; } }
+
+/* Quando DIC é carregado dentro do hub (iframe), esconder sidebar interna
+   e expandir workspace para usar todo o espaço (evita sidebar dupla + vão) */
+body.in-hub .dic-side { display: none; }
+body.in-hub .dic-body { grid-template-columns: minmax(0, 1fr) var(--ai); }
