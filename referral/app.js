@@ -63,8 +63,10 @@
         const whats55 = '+55' + String(session.whats).replace(/\D/g,'').slice(-11);
         indicador = await data.getIndicadorByWhats(whats55).catch(()=>null);
       }
-      // 3) se ainda não achou e temos dados do hub, cria (e liga o user_id)
-      if (!indicador && session && sess && sess.user) {
+      // 3) auto-criação APENAS para a camada Cliente (C5). Admin/equipe não têm painel
+      //    de indicação individual — evita criar indicador fake (e erro de chave duplicada).
+      const isCliente = session && session.layer === 'cliente';
+      if (!indicador && isCliente && sess && sess.user) {
         const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
         const nome = session.name || sess.user.email || 'Cliente';
         const cpf = session.cpf || '';
@@ -77,7 +79,7 @@
           loja_id: lojaId,
           cpf,
           codigo,
-          cidade: '',
+          cidade: session.cidade || '',
           aceite_lgpd_em: new Date().toISOString(),
         }).catch(e=>{ console.warn('não criou indicador', e.message); return null; });
       }
@@ -182,10 +184,26 @@
     render();
   }
 
-  // ---------- Copy ----------
+  // ---------- Copy (copia de verdade para a área de transferência) ----------
+  function copyText(txt){
+    const done = () => toast('Copiado: ' + (txt||''));
+    const err = () => toast('Não foi possível copiar — copie manualmente.');
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(txt).then(done, err);
+      return;
+    }
+    // fallback para contextos não seguros
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy'); document.body.removeChild(ta);
+      ok ? done() : err();
+    } catch(e){ err(); }
+  }
   document.addEventListener('click', (e)=>{
     const cb = e.target.closest('.btn-copy');
-    if (cb) { const el = $id(cb.dataset.copy); if (el) toast('Copiado: ' + (el.value||'')); }
+    if (cb) { const el = $id(cb.dataset.copy); if (el) copyText(el.value||''); }
   });
 
   // ---------- Eventos ----------

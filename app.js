@@ -95,6 +95,7 @@
     const email = $id('ssoEmail').value.trim();
     const whats = $id('ssoWhats').value.trim();
     const cpf = $id('ssoCpf').value.trim();
+    const cidade = $id('ssoCidade').value.trim();
     const senha = $id('ssoSenha').value;
 
     // ---- validação de obrigatórios (com mensagens claras) ----
@@ -104,6 +105,7 @@
     if(!email || !email.includes('@')){ toast('⚠️ Informe um email válido'); return; }
     if(!whats){ toast('⚠️ Informe o WhatsApp'); return; }
     if(!cpf){ toast('⚠️ Informe o CPF'); return; }
+    if(!cidade){ toast('⚠️ Informe a cidade'); return; }
     if(!senha){ toast('⚠️ Crie uma senha'); return; }
 
     // CPF: aceita só dígitos, normaliza
@@ -128,7 +130,7 @@
     const modo = dataMode; // 'supabase' ou 'demo'
 
     // ---- cria sessão e NAVEGA IMEDIATAMENTE (sem esperar Supabase) ----
-    session = { name, email, layer, lojaId, whats, cpf: cpfDigitos };
+    session = { name, email, layer, lojaId, whats, cpf: cpfDigitos, cidade };
     const L = LAYERS[layer];
     $id('ahName').textContent = name;
     $id('ahRole').textContent = L.nome;
@@ -161,7 +163,7 @@
               const codigo = 'IG' + Math.random().toString(36).slice(2,8).toUpperCase();
               await data.criarIndicador({
                 user_id: userId, nome: name, whatsapp_norm: whatsNorm,
-                loja_id: lojaId, cpf: cpfDigitos, codigo, cidade: '', aceite_lgpd_em: new Date().toISOString(),
+                loja_id: lojaId, cpf: cpfDigitos, codigo, cidade, aceite_lgpd_em: new Date().toISOString(),
               }).catch(e=>console.warn('indicador não criado:', e.message));
             }
           }
@@ -268,7 +270,11 @@
       // busca o perfil/indicador
       const userId = sess.user ? sess.user.id : null;
       const layer = await detectarCamada(email, userId);
-      session = { name: email.split('@')[0], email, layer };
+      const ind = userId ? await window.iGotUpData.getIndicador(userId).catch(()=>null) : null;
+      const nomeReal = (ind && ind.nome) ? ind.nome : email.split('@')[0];
+      const cidadeReal = (ind && ind.cidade) ? ind.cidade : '';
+      const lojaReal = (ind && ind.loja_id) ? ind.loja_id : null;
+      session = { name: nomeReal, email, layer, cidade: cidadeReal, lojaId: lojaReal };
     } else {
       // modo demo: entra direto
       const layer = email.toLowerCase() === ADM_EMAIL ? 'matriz_admin' : 'cliente';

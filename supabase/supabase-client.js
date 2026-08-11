@@ -85,45 +85,5 @@
       const { data } = await this.client.from('profiles').select('*').eq('id', session.user.id).single();
       return data;
     },
-
-    // ---------- DADOS ----------
-    async getReferrals(userId) {
-      const { data } = await this.client.from('referrals').select('*').eq('indicador_id', userId).order('created_at', { ascending: false });
-      return data || [];
-    },
-
-    async createReferral(ref) {
-      const { data, error } = await this.client.from('referrals').insert(ref).select().single();
-      return { data, error };
-    },
-
-    async getWallet(userId) {
-      const { data } = await this.client.from('wallets').select('*').eq('user_id', userId).single();
-      return data;
-    },
-
-    async creditWallet(userId, valor, descricao, ref) {
-      // get wallet
-      const w = await this.getWallet(userId);
-      const novoSaldo = (w?.saldo || 0) + valor;
-      const { error: e1 } = await this.client.from('wallets').update({ saldo: novoSaldo }).eq('user_id', userId);
-      if (e1) return { error: e1 };
-      const { error: e2 } = await this.client.from('wallet_movements').insert({
-        wallet_id: w?.id, tipo: 'crédito', descricao, valor, ref_referral: ref,
-      });
-      return { error: e2 };
-    },
-
-    async updateMps(userId, patch) {
-      return this.client.from('mps').update(patch).eq('user_id', userId);
-    },
-
-    async logAudit(actor, layer, acao, tenant, payload) {
-      return this.client.from('auditoria').insert({ actor_id: actor, actor_layer: layer, acao, tenant, payload });
-    },
-
-    async createCampanha(camp) {
-      return this.client.from('campanhas_criadas').insert(camp);
-    },
   };
 })(window);
